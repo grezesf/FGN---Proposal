@@ -2,6 +2,7 @@
 \usetheme{Madrid}
 
 \usepackage[utf8]{inputenc}
+\usepackage{subfig}
 
 
 \title[FGNs vs Adversarial Attacks] %optional
@@ -92,13 +93,23 @@ $$ g = exp \left( \frac{-1}{\sigma^2}*\sum_{i}(x_i-c_i)^2 \right)$$
 
 \end{frame}
 
-\begin{frame}{2D Illustration}
+\begin{frame}{2D Neuron Activity }
 % 2 images for classic: linear and after non-linearity like tanh
-
 % 2 images for fgn: gaussian component and combination 
+\vspace{-0.5cm}
+\begin{figure}
+  \centering
+  \subfloat[Linear: $l = W^tX$]{\includegraphics[height=3.2cm,width=4cm]{images/2D Activity/2d-linear-activity-cropped.png}} \hspace{0.5cm}
+  \subfloat[Classic: $y = tanh(l)$]{\includegraphics[height=3.2cm,width=4cm]{images/2D Activity/2d-classic-activity-cropped.png}}\\
+  \vspace{-0.2cm}
+  \subfloat[$g = e^{\frac{-1}{\sigma^2}*\sum_{i}(x_i-c_i)^2}$]{\includegraphics[height=3.2cm,width=4cm]{images/2D Activity/2d-gaussian-activity-cropped.png}} \hspace{0.5cm}
+  \subfloat[FGN: $y = l*g$]{\includegraphics[height=3.2cm,width=4cm]{images/2D Activity/2d-fgn-activity-cropped.png}}
+\end{figure}
 \end{frame}
 
-
+\begin{frame}{2D Toy Data}
+    
+\end{frame}
 
 
 \end{document}
