@@ -3,6 +3,7 @@
 
 \usepackage[utf8]{inputenc}
 \usepackage{subfig}
+\usepackage{tikz}   
 
 
 \title[FGNs vs Adversarial Attacks] %optional
@@ -65,35 +66,38 @@ My works aims to:
 \end{frame}
 
 \section{The Finite Gaussian Neuron}
-\begin{frame}{The Classic Neuron}
-% Classic neuron math
-Neuron output: 
-$$y = \varphi(l)$$
-Linear component:
-$$l=\sum_i x_i w_i$$
 
-% classic neuron illustrated
-\begin{center}
-    \includegraphics[width=0.75\textwidth]{images/artificial_neuron_model.png}
-\end{center}
+\begin{frame}{The Classical Neuron}
+    % Classic neuron math
+    \begin{block}{Neuron output}
+        $$y = \varphi(l)$$
+    \end{block}
+    \begin{block}{Linear component}
+        $$l=\sum_i x_i w_i$$
+    \end{block}
+    % classic neuron illustrated
+    \begin{center}
+        \includegraphics[width=0.6\textwidth]{images/artificial_neuron_model.png}
+    \end{center}
 \end{frame}
 
 \begin{frame}{The Finite Gaussian Neuron}
-%%math
-Neuron output:
-$$ y = \varphi(\sum_i x_i w_i) * g$$ \\ 
-Gaussian component:
-$$ g = exp \left( \frac{-1}{\sigma^2}*\sum_{i}(x_i-c_i)^2 \right)$$
-% $$ g = exp(\frac{-\sum_i (x_i-c_i)^2}{\sigma^2} )$$
-
-%% gaussian component illustrated
-\begin{center}
-    \includegraphics[width=0.5\textwidth]{images/fgn-gaussian-component.png}
-\end{center}
-
+    %%math
+    \begin{block}{Neuron output}
+        $$ y = \varphi(\sum_i x_i w_i) * g$$
+    \end{block}
+    \begin{block}{Gaussian component}
+    % $$ g = exp \left( \frac{-1}{\sigma^2}*\sum_{i}(x_i-c_i)^2 \right)$$
+    % $$ g = exp(\frac{-\sum_i (x_i-c_i)^2}{\sigma^2} )$$
+    $$ g = e^{\frac{-1}{\sigma^2}\sum_{i}(x_i-c_i)^2}$$
+    \end{block}
+    %% gaussian component illustrated
+    \begin{center}
+        \includegraphics[width=0.5\textwidth]{images/fgn-gaussian-component.png}
+    \end{center}
 \end{frame}
 
-\begin{frame}{2D Neuron Activity }
+\begin{frame}{2D Neuron Activity Visualization}
 % 2 images for classic: linear and after non-linearity like tanh
 % 2 images for fgn: gaussian component and combination 
 \vspace{-0.5cm}
@@ -107,8 +111,57 @@ $$ g = exp \left( \frac{-1}{\sigma^2}*\sum_{i}(x_i-c_i)^2 \right)$$
 \end{figure}
 \end{frame}
 
-\begin{frame}{2D Toy Data}
+\begin{frame}{Matching Classical Neuron Behavior}
+    \begin{block}{Property 1}As $\sigma$ increases, the Finite Gaussian Neuron's behavior gets closer that of the classical neuron with the same $W$ weights.
+    \end{block}
+    \vspace{0.2cm}
+    \begin{tikzpicture}
+        \node (img1) {\includegraphics[height=3cm]{images/Matching-behavior/sigma-1-cropped.png}};\pause
+        \node (img2)at(img1.south east) [xshift=-0.75cm]{\includegraphics[height=3cm]{images/Matching-behavior/sigma-2-cropped.png}};\pause
+        \node (img3)at(img2.north east) [xshift=-0.75cm]{\includegraphics[height=3cm]{images/Matching-behavior/sigma-3-cropped.png}};\pause
+        \node (img4)at(img3.south east) [xshift=-0.75cm]{\includegraphics[height=3cm]{images/Matching-behavior/sigma-4-cropped.png}};\pause
+        \node (img5)at(img4.north east) [xshift=-0.75cm]{\includegraphics[height=3cm]{images/Matching-behavior/sigma-5-cropped.png}};\pause
+        \node (img6)at(img5.south east) [xshift=-0.75cm]{\includegraphics[height=3cm]{images/Matching-behavior/sigma-6-cropped.png}};\pause
+        \node (img7)at(img6.north east) [xshift=-0.75cm]{\includegraphics[height=3cm]{images/Matching-behavior/sigma-7-cropped.png}};
+    \end{tikzpicture}
+\end{frame}
+
+
+
+% Variants
+\begin{frame}{Variants - Different $p$-norms}
+    \begin{block}{Gaussian Component}
+        $$ g = e^{\frac{-1}{\sigma^2}\lVert x_i-c_i \lVert_p }$$
+    \end{block}
+    \vspace{0.3cm}
+    \begin{columns}
+    \hspace{-0.2cm}
+    \begin{column}{.27\textwidth}
+            \includegraphics[width=\textwidth]{images/Variants-Norms/ord0.5_g-cropped.png}\\
+            \includegraphics[width=\textwidth]{images/Variants-Norms/ord0.5-cropped.png}\\
+            \centering $p=0.5$
+    \end{column} \\
+    \hspace{0.1cm}
+    \begin{column}{.27\textwidth}
+            \includegraphics[width=\textwidth]{images/Variants-Norms/ord1_g-cropped.png}\\
+            \includegraphics[width=\textwidth]{images/Variants-Norms/ord1-cropped.png}\\
+            \centering $p=1$
+    \end{column} \\
+    \hspace{0.1cm}
+    \begin{column}{.27\textwidth}
+            \includegraphics[width=\textwidth]{images/Variants-Norms/ord3_g-cropped.png}\\
+            \includegraphics[width=\textwidth]{images/Variants-Norms/ord3-cropped.png}\\
+            \centering $p=3$
+    \end{column}
+    \end{columns}
+\end{frame}
+
+
+\begin{frame}{Variants - Decoupled Center}
     
+\end{frame}
+
+\begin{frame}{2D Toy Data - Single Neuron Training Example}
 \end{frame}
 
 
