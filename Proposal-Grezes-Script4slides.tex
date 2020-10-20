@@ -1,0 +1,114 @@
+\documentclass{article}
+
+\begin{document}
+
+% one section per slides~
+
+\section{Title}
+\textbf{Script for the proposal presentation: Finite Gaussian Neurons - A Defense Against Adversarial Attacks?} by Felix Grezes.\\
+
+Thanks everyone for being here.
+
+\section{Table of Contents}
+
+\section{Abstract}
+
+\section{Introduction}
+
+\section{Related Work}
+
+\section{Motivation}
+
+\section{The Classical Neuron}
+
+\section{The Finite Gaussian Neuron}
+
+\section{2D - Neuron Activity Visualization}
+
+\section{Training the FGN}
+We adapt the traditional loss function (for example: mean-squared error, cross-entropy) by adding a term that pressures the size of the neurons, the sigma, to go down. \\
+I started off with the sum of the square of the sigmas, similar to traditional weights regularization, forcing the sigmas down as we minimize the error, with some small factor lambda compared to the more important part of the loss function.\\
+There isn't an analogous regularization term for the centers. The all zero's location in the N-dim space isn't special. \\
+Here are the partial derivatives for the various parameters, to be used by the backpropagation algorithm. Of course the exact gradient depends on the cost function chosen (MSE, Cross-Entropy), and the phi non-linearity, but these can still help us guide our intuition.\\
+The takeaways are:\\
+the changes to all params depend on the gaussian activity g. when g is zero (we are far from the center of the neuron, the sigma is too small), there are no changes to the neuron. This indicates that we need to initialize the neuron properly. If we don't and the g activity is zero everywhere, we won't be able to learn.\\
+For the centers, if the prediction is correct, the center moves toward the data point, otherwise moves away (not to self: ideally it would not depend on the prediction? also enforce neuron separation?). 
+dy/dc : depends on phi(l) being correct, so have large sigma at first so that the centers don't move much, until they are mostly correct and then shrink sigmas to move towards centers of data.\\
+For the sigma (size of neuron), there is only a small zone in which its not zero: if sigma is large or small, the gradient is zero, and then the only changes will be from the regularization term in the loss (pressure to be smaller).
+
+
+
+\section{2D Toy Data - Single Neuron Training Example}
+Sanity check: verifying that gradient descent and backprop work for a single finite gaussian neuron (perceptron equivalent) on a linearly separable problem, while restricting activity to the data.\\
+
+plots: \\ 
+ - a random blob with 2 classes, linearly separable, centered on (1,1)\\
+ - the gaussian activity pre-training: close to zero (no priors), large enough to cover the data\\
+ - activity of the neuron after training over the 2d space: \\
+    - cost function: mean square error with lambda sigma=0.01\\
+    - optimizer: Adam (with lr=0.05)\\
+    - notice that the activity is zero far from seen data points \\ 
+ -  the gaussian activity post-training: cover only the data, zero elsewhere\\
+ - how the size of the neuron, sigma, changes over training epochs. notice shrinks at first, then grows a bit as it fits the data better and the center adjusts itself.\\
+ - how the center moves in the 2d space during training, notice it goes towards the theoretical ideal center of (1,1). Also drawn are the final and theoretical linear separator (yellow, black)\\
+ 
+ This shows that this finite-gaussian neuron is functional, at a very simple and basic level. It still remain to be shown it doesn't breakdown when combining them in a network.\\
+    
+some risks I discovered:\\
+ - too small a radius of activity; activity ~0 over all data; zero gradient / can't learn. \\ 
+ - in theory, sigma could grow first while neuron centers itself; in practice happens rarely; better to start with large sigma. \\ 
+
+\section{Matching Classical Neuron Behavior}
+consequence of property:  every classical neural net can be converted to a finite gaussian neural net with identical behavior over a given dataset, by making the sigmas large enough.
+
+\section{Variants - Different $p$-norms}
+
+\section{Variants - Decoupled Bias/Center}
+In the previous pictures, the center of the gaussian term aligned itself with bias of the linear component of the neuron. This is done by restricting the bias term of the linear component and by computing it based off the centers of the gaussian component.  In practice this isn't required, and there is no such restriction.\\
+Here is an example of what the activity might looks liked with decoupled bias/center.\\
+I'm only mentioning this because when designing the FGN, I had the previous pictures in mind, of what I wanted the activity to look like, but there is no reason for that restriction. \\
+I did implement the code to have restricted biases, but it didn't have any practical implications, so might as well let it learn separate bias/centers terms. 
+
+\section{Variants - Diagonal and Full Covariance}
+So far all the examples have had the same variance/spread over the input dimensions. \\
+Often, the input dimensions have different meaning (ex: time/space) or scale, so having a single sigma term for all of them could limit the expressive power of the gaussian term.\\
+We can adapt the computation of the gaussian term to be a full multivariate gaussian computation, with a sigma term that is a matrix that holds the various variances along the input dimensions.\\
+Here are two examples of what the g activity looks like with covariance matrices : when the Sigma covariance matrix is diagonal, each value on the diagonal represents the variance along a separate dimension; so here we have a high variance for the X axis, and a low variance for the Y axis. When the covariance matrix is full, we have also encoded the covariance between the dimensions.\\
+So we generalize from a circle/sphere/hypersphere in larger dimensions, to an ellipse, with added rotation.\\
+While theoretically useful, in practice the computational costs become to large.\\
+Not only is the number of parameters to tune much larger: input dim squared extra for the full covariance matrix.\\
+But we turn a simple multiplication by 1/sigma into vector multiplication (diagonal covariance matrix case) or a full n-by-n square matrix multiplication for the full covariance matrix.\\
+So default spherical gaussian is  used. Actually possible diagonal covariance matrix isn't much more computation.\\
+There is interesting math and implementation details for these, regarding the sigma loss, the math to ensure Sigma stay semi-definite positive, in the addendum. 
+
+\section{Multi-Layer Finite Gaussian Neural Networks}
+Now that I've explained and shown how a single neuron works, I'm going to explain how to combine them into a network.\\
+The formula for any neuron's output doesn't change, except that xi might be the data (input to the whole network) or might be another neuron's output. The difference is the gaussian activity term g.\\
+Because we need to propagate out-of-range g activities, we now combine the max of the previous layers g with the current g. so for each neuron's output, we also store and pass the g to the next layer. For the initial inputs, just skip this step (or say prev g is one).\\
+One way to think of this is as a kind of gate that says "we are in a region of space where we have seen data", and "we've never been here, don't make a prediction".\\
+I tried to illustrate the process: the previous layer's outputs X ang G (vectors of values) get passed to the neuron, passed through the W and Phi parameters for the classic activity, and through the center and size parameters C and Sigma for the gaussian activity. The g activity is then gated by the max of the previous layer Gs. Both the final activity y and g are passed to the next layer (or is the ouput of the network, in which case drop g)
+
+\section{2D Toy Data - Classic vs FGN Network}
+Now again I show a toy example to illustrate the differences between a network built out of classic neurons and a network built out of finite gaussian neurons. The networks are otherwise identical (both are 32 and 16 neurons in the hidden layers).\\
+Here is a two dimensional, two class non-linearly separable artifical dataset, and here are the heatmaps of the activity of the two networks. So in Blue is where the network predicts the blue class, with a certain confidence.\\
+As you can see, the classic network separates the two classes well, but also makes very strong predictions in areas where no data exists; compare that to the FGN network that also separates the classes properly, but makes no predictions far from the data.\\
+As an aside, you can see the finite range of the neurons, in these bubbles of sorts.\\
+Now you may say that since these regions, while far from data, are closest to a class, it makes sense to assign that class to that region. However 2 things: First of all I'd argue that if you are visiting a truly new region of the data-space, you should not make a prediction: eg if i give a network trained on cats vs dogs, and show a picture of a car, the network should not say "85 percent chance of dog". \\
+Second, as I show in the next slide ... \\
+
+\section{2D Toy Data - Classic vs FGN Network (continued)}
+this a-priori sensible behavior, of making predictions based on closest class, isn't always true.\\
+Here I've zoomed out and you can see that the behavior becomes unpredictable. Other classical networks will draw these far-away lines differently and more or less arbitrarily, while the FGN network stays at zero activity everywhere.
+
+\section{2D Toy Data - Classic vs FGN Network (addendum)}
+This slides just documents some details of the training.\\
+Due to the sigmas loss weight, most sigmas go steadily down during training, shrinking the range of neuron activity.\\
+Training/Testing accuracies aren't particularly relevant on this toy problem, but here they are. FGN networks don't always outperform classic networks but did in this case.\\
+Finally an implementation detail, since the data is not normalized to mean 0 variance 1, there is no guarantee default neuron centers and sigma will lead to any activity for the neurons, so the centers of the neurons of the first layer are set to random data points, with large enough sigmas.
+
+\section{2D Toy Data - Why is the Gaussian Gate Needed?}
+As an brief aside, you may wonder why the gaussian gate is needed, when we could just combine FGNs naively.\\
+When you do that, activity far from data makes the first layer go to zero activity, as expected and desired, but subsequent layers will report the activity from the (0,0,0...0) point hyperspace, which has no reason to be zero.\\
+So what you get is a default constant, but unpredictable, activity over all the space far from the data.
+
+\end{document}
