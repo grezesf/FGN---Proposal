@@ -6,7 +6,8 @@
 \usepackage{tikz}   
 \captionsetup[subfloat]{labelformat=empty}
 
-
+\usepackage{biblatex}
+\bibliography{bibl.bib}
 
 \title[FGNs vs Adversarial Attacks] %optional
 {Finite Gaussian Neurons}
@@ -39,12 +40,15 @@
 
 \section{Abstract}
 \begin{frame}{Abstract}
-I introduce the Finite Gaussian Neuron, a novel neural network architecture.\\
+Artificial neural networks have been shown to be vulnerable to adversarial attacks, which can imperceptibly alter inputs to fool the network into make wrong or nonsensical predictions.\\
+\vspace{2mm}
+In this work I introduce the Finite Gaussian Neuron, a novel neuron architecture for artificial neural networks.\\
+\vspace{2mm}
 
 My works aims to:
 \begin{itemize}
-    \item make it easy to convert existing models to the FGN architecture
-    \item while preserving the existing model's behavior on real data
+    \item make it easy to convert existing models to the FGN architecture,
+    \item while preserving the existing model's behavior on real data,
     \item and offering resistance against some adversarial attacks.
 \end{itemize}
 
@@ -58,10 +62,41 @@ My works aims to:
 
 
 \section{Related Work}
-\begin{frame}{Related Work}
+
+\begin{frame}{Related Work - Adversarial Training \cite{madry2019deep}}
+    \begin{block}{Train on Adversarial Examples from Multi-step Gradient-based Attack }
+        $\bullet$ Pros: potential universal robustness (vs first-order methods) \\
+        $\bullet$ Cons: requires larger networks, generating examples, and retraining 
+    \end{block}
+    
+   \begin{figure} 
+       \includegraphics[width=0.9\textwidth]{images/Related-Work/adversarial-training.PNG}
+       \caption*{\fullcite{madry2019deep}}
+   \end{figure}
     
 \end{frame}
 
+\begin{frame}{Related Work - Distillation \cite{Papernot2016DistillationAA} }
+
+    \begin{block}{}
+         $\bullet$ Cons: requires generating class probabilities, retraining.
+    \end{block}
+
+    
+   \begin{figure} 
+       \includegraphics[width=0.9\textwidth]{images/Related-Work/distillation.png}
+       \caption*{\fullcite{Papernot2016DistillationAA}}
+   \end{figure}
+    
+\end{frame}
+
+\begin{frame}{Related Work - Radial Basis Function Networks}
+
+\end{frame}
+
+\begin{frame}{Related Work - Bayesian Neural Networks}
+
+\end{frame}
 
 \section{Motivation}
 \begin{frame}{Motivation}
@@ -106,7 +141,6 @@ My works aims to:
     % 2 images for fgn: gaussian component and combination 
     \vspace{-0.5cm}
     \begin{figure}
-      \centering
       \subfloat[Linear: $\ell = W^tX$]{\includegraphics[height=3.2cm,width=4cm]{images/2D Activity/2d-linear-activity-cropped.png}} \hspace{0.5cm}
       \subfloat[Classic: $y = \tanh(\ell)$]{\includegraphics[height=3.2cm,width=4cm]{images/2D Activity/2d-classic-activity-cropped.png}}\\
       \vspace{-0.2cm}
@@ -115,9 +149,36 @@ My works aims to:
     \end{figure}
 \end{frame}
 
+\begin{frame}{Bird's Eye View - Desired Behavior}
+    % \begin{figure}
+    %     \includegraphics[width=.25\textwidth]{images/Bird's Eye View/data.png}
+    % \end{figure}
+    
+    \begin{block}{Desired Behavior}
+    $\bullet$ Restrict network activity to space that contains data.
+    \end{block}
+    
+    \begin{columns}
+    \begin{column}{.45\textwidth}
+    \begin{figure}
+        \includegraphics[width=\textwidth]{images/Bird's Eye View/classic_with_data.png}
+        \caption*{Classic Network Behavior}
+    \end{figure}
+    \end{column}
+    \begin{column}{.45\textwidth}
+    \begin{figure}
+        \includegraphics[width=\textwidth]{images/Bird's Eye View/fgn_with_data.png}
+        \caption*{Desired FGN Network Behavior}
+    \end{figure}
+    \end{column}
+    \end{columns}
+    
+\end{frame}
+
+
 \begin{frame}{Matching Classical Neuron Behavior}
     \begin{block}{Property}
-    As $\sigma$ increases, the Finite Gaussian Neuron's behavior gets closer that of the classical neuron with the same $W$ weights.
+    As the neuron range $\sigma$ increases, the Finite Gaussian Neuron's behavior gets closer that of the classical neuron with the same $W$ weights.
     \end{block}
     \vspace{0.2cm}
     \begin{tikzpicture}
@@ -131,11 +192,35 @@ My works aims to:
     \end{tikzpicture}
 \end{frame}
 
+\begin{frame}{Conversion - Initialization of Centers and Range}
+    \begin{block}{Research in Progress}
+    Converting a classical neuron to an FGN involves two free parameters: centers $c_i$ and range $\sigma$.\\
+    $\bullet$ Initialize the centers to be the point on the zero line closest to the origin.\\
+    $\bullet$ Initialize the range large enough to not change network behavior.
+    \end{block}
+    
+    \begin{columns}
+    \begin{column}{.5\textwidth}
+    \begin{figure}
+        \includegraphics[width=.8\textwidth]{images/2D-Conversion/classic-act.png}
+        \caption*{Classic Neuron Activity}
+    \end{figure}
+    \end{column}
+    \begin{column}{.5\textwidth}
+    \begin{figure}
+        \includegraphics[width=.8\textwidth]{images/2D-Conversion/converted-act.png}
+        \caption*{Converted Neuron Finite Activity}
+    \end{figure}
+    \end{column}
+    \end{columns}
+    
+\end{frame}
+
 \begin{frame}{Training the FGN}
     % talk about adapting SGD to the FGN math
     % adapt the loss function
     \begin{block}{Cost Function - Sigma Regularization}
-    $$ C = C + \lambda\sigma^2  $$
+    $$ C = \tilde{C} + \lambda\sigma^2  $$
     \end{block}
     
     \begin{block}{Gradients for Backpropagation}
@@ -153,7 +238,7 @@ My works aims to:
     \begin{columns}
     \begin{column}{.31\textwidth}
         \includegraphics[width=0.85\textwidth]{images/2D-single-neuron/2d-easy-data-cropped.png}\\
-        \centering\footnotesize{toy 2D data}
+        \centering\footnotesize{toy 2D data}\\
         \includegraphics[width=\textwidth]{images/2D-single-neuron/2d-easy-initialg-cropped.png}
         \centering\footnotesize{$g$ pre-training}\\
     \end{column}
@@ -161,7 +246,7 @@ My works aims to:
     \hspace{0.1cm}
     \begin{column}{.31\textwidth}
         \includegraphics[width=1.02\textwidth]{images/2D-single-neuron/2d-easy-trained-activity-cropped.png}\\
-        \centering\footnotesize{activity post-training}
+        \centering\footnotesize{activity post-training}\\
         \includegraphics[width=\textwidth]{images/2D-single-neuron/2d-easy-trainedg-cropped.png}\\
          \centering\footnotesize{$g$ post-training}
     \end{column} 
@@ -169,7 +254,7 @@ My works aims to:
     \hspace{0.1cm}
     \begin{column}{.31\textwidth}
         \vspace{0.1cm} \hspace{-0.01cm} \includegraphics[width=0.84\textwidth,height=3.1cm]{images/2D-single-neuron/2d-easy-sigma-training-cropped.png}\\
-        \centering\footnotesize{$\sigma$ over training}
+        \centering\footnotesize{$\sigma$ over training}\\
         \includegraphics[width=0.92\textwidth]{images/2D-single-neuron/2d-easy-center-path-cropped.png}\\
         \centering\footnotesize{center path}
         
@@ -178,32 +263,32 @@ My works aims to:
 
 \end{frame}
 
-% \begin{frame}{Variants - Different $p$-norms}
-%     \begin{block}{Gaussian Component with $p$-norm}
-%         $$ g = e^{\frac{-1}{\sigma^2}\lVert x_i-c_i \lVert_p }$$
-%     \end{block}
-%     \vspace{0.3cm}
-%     \begin{columns}
-%     \hspace{-0.2cm}
-%     \begin{column}{.27\textwidth}
-%             \includegraphics[width=\textwidth]{images/Variants-Norms/ord0.5_g-cropped.png}\\
-%             \includegraphics[width=\textwidth]{images/Variants-Norms/ord0.5-cropped.png}\\
-%             \centering $p=0.5$
-%     \end{column} \\
-%     \hspace{0.1cm}
-%     \begin{column}{.27\textwidth}
-%             \includegraphics[width=\textwidth]{images/Variants-Norms/ord1_g-cropped.png}\\
-%             \includegraphics[width=\textwidth]{images/Variants-Norms/ord1-cropped.png}\\
-%             \centering $p=1$
-%     \end{column} \\
-%     \hspace{0.1cm}
-%     \begin{column}{.27\textwidth}
-%             \includegraphics[width=\textwidth]{images/Variants-Norms/ord3_g-cropped.png}\\
-%             \includegraphics[width=\textwidth]{images/Variants-Norms/ord3-cropped.png}\\
-%             \centering $p=3$
-%     \end{column}
-%     \end{columns}
-% \end{frame}
+\begin{frame}{Variants - Different $p$-norms}
+    \begin{block}{Gaussian Component with $p$-norm}
+        $$ g = e^{\frac{-1}{\sigma^2}\lVert x_i-c_i \lVert_p }$$
+    \end{block} ~\\
+    
+    \begin{columns}
+    \hspace{-0.2cm}
+    \begin{column}{.27\textwidth}
+            \includegraphics[width=\textwidth]{images/Variants-Norms/ord0.5_g-cropped.png}\\
+            \includegraphics[width=\textwidth]{images/Variants-Norms/ord0.5-cropped.png}\\
+            \centering $p=0.5$
+    \end{column} \\
+    \hspace{0.1cm}
+    \begin{column}{.27\textwidth}
+            \includegraphics[width=\textwidth]{images/Variants-Norms/ord1_g-cropped.png}\\
+            \includegraphics[width=\textwidth]{images/Variants-Norms/ord1-cropped.png}\\
+            \centering $p=1$
+    \end{column} \\
+    \hspace{0.1cm}
+    \begin{column}{.27\textwidth}
+            \includegraphics[width=\textwidth]{images/Variants-Norms/ord3_g-cropped.png}\\
+            \includegraphics[width=\textwidth]{images/Variants-Norms/ord3-cropped.png}\\
+            \centering $p=3$
+    \end{column}
+    \end{columns}
+\end{frame}
 
 \begin{frame}{Variants - Decoupled Bias/Centers}
 
@@ -296,6 +381,11 @@ My works aims to:
 \end{frame}
 
 \begin{frame}{2D Toy Data - Classic vs FGN Network (continued)}
+    \vspace{-1cm}
+    \begin{block}{}
+    Activity of a classic feedforward network over 2D data, compared to that of an FGN network with the same number of neurons (zoomed out).
+    \end{block}
+
     \begin{columns}
     \begin{column}{.333\textwidth}
     \begin{figure}
@@ -327,7 +417,8 @@ My works aims to:
 \begin{frame}{2D Toy Data - Classic vs FGN Network (addendum)}
     
     \begin{block}{Training Parameters}
-    $\bullet$ 32-16 neurons in hidden layers $\bullet$ spherical covariance $\bullet$ 2-norm $\bullet$ Adam optimizer $\bullet$ cross-entropy loss $\bullet$ 0.001 sigmas loss weight
+    $\bullet$ 32-16 neurons in hidden layers $\bullet$ 1/16 dropout $\bullet$ spherical covariance\\
+    $\bullet$ 2-norm $\bullet$ Adam optimizer $\bullet$ cross-entropy loss $\bullet$ 0.001 sigmas loss weight
     \end{block}
 
     \begin{columns}
@@ -387,46 +478,354 @@ My works aims to:
 
 \section{Networks over MNIST}
 
-\begin{frame}{MNIST Behavior - Classic Network}
+\begin{frame}{MNIST and Random Datasets}
+    \begin{block}{MNIST Dataset}
+    $\bullet$ 50/10/10 K images for train/val/test $\bullet$ 28*28 256 valued grayscale pixels\\ 
+    \end{block}
+    \begin{block}{Random Images Dataset}
+    $\bullet$ Fully random pixels (changes mean/variance)\\
+    $\bullet$ Shuffled dataset images (preserves mean/variance)\\ 
+    \end{block}
+    
     \begin{columns}
-    \begin{column}{.32\textwidth}
+    \begin{column}{.33\textwidth}
     \begin{figure}
         \centering
-        \includegraphics[width=.5\textwidth]{images/mnist-behavior/classic-hist-val.png}
-    \end{figure}
-        \begin{figure}
-        \centering
-        \includegraphics[width=.5\textwidth]{images/mnist-behavior/classic-pred-val.png}
+        \includegraphics[width=.99\textwidth]{images/mnist-behavior/MNIST-Sample.png}
     \end{figure}
     \end{column}
-    
-    \begin{column}{.32\textwidth}
+    \begin{column}{.33\textwidth}
     \begin{figure}
         \centering
-        \includegraphics[width=.5\textwidth]{images/mnist-behavior/classic-hist-val.png}
-    \end{figure}
-        \begin{figure}
-        \centering
-        \includegraphics[width=.5\textwidth]{images/mnist-behavior/classic-pred-val.png}
+        \includegraphics[width=.99\textwidth]{images/mnist-behavior/MNIST-Sample-random-noise.png}
     \end{figure}
     \end{column}
-    
-     \begin{column}{.32\textwidth}
+    \begin{column}{.33\textwidth}
     \begin{figure}
         \centering
-        \includegraphics[width=.5\textwidth]{images/mnist-behavior/classic-hist-val.png}
-    \end{figure}
-        \begin{figure}
-        \centering
-        \includegraphics[width=.5\textwidth]{images/mnist-behavior/classic-pred-val.png}
+        \includegraphics[width=.99\textwidth]{images/mnist-behavior/MNIST-Sample-random-shuffled-noise.png}
     \end{figure}
     \end{column}
+    \end{columns}
     
+\end{frame}
+
+\begin{frame}{Classic Network - MNIST Behavior}
+    
+    \begin{block}{Classic Feedforward Network Parameters}
+    $\bullet$ 64-64 neurons in hidden layers $\bullet$ 0.2 dropout $\bullet$ Train accuracy: 49509/50000 (99\%) $\bullet$ Validation accuracy: 9739/10000 (97\%)
+    \end{block}
+
+    \begin{columns}
+    \begin{column}{.5\textwidth}
+    \begin{figure}
+        \centering
+        \includegraphics[width=.82\textwidth]{images/mnist-behavior/classic-hist-val.png}
+        \caption*{ $>$99\% of confidences $>$0.5}
+    \end{figure}
+    \end{column}
+    \begin{column}{.5\textwidth}
+    \begin{figure}
+        \raggedright
+        \vspace{-3mm}
+        \includegraphics[width=.73\textwidth]{images/mnist-behavior/classic-pred-val.png}
+        \caption*{}
+    \end{figure}
+    \end{column}
     \end{columns}
     
     
 \end{frame}
 
+\begin{frame}{Classic Network - Fully Random Noise Behavior}
+
+    \begin{columns}
+    \begin{column}{.5\textwidth}
+    \begin{figure}
+        \centering
+        \includegraphics[width=.85\textwidth]{images/mnist-behavior/classic-hist-random.png}
+        \caption*{ $>$66\% of confidences $>$0.5}
+    \end{figure}
+    \end{column}
+    \begin{column}{.5\textwidth}
+    \begin{figure}
+        \raggedright
+        \vspace{-3mm}
+        \includegraphics[width=.73\textwidth]{images/mnist-behavior/classic-pred-random.png}
+        \caption*{}
+    \end{figure}
+    \end{column}
+    \end{columns}
+    
+\end{frame}
+
+\begin{frame}{Classic Network - Shuffled Images Behavior}
+
+    \begin{columns}
+    \begin{column}{.5\textwidth}
+    \begin{figure}
+        \centering
+        \includegraphics[width=.82\textwidth]{images/mnist-behavior/classic-hist-shuffled.png}
+        \caption*{ $>$78\% of confidences $>$0.5}
+    \end{figure}
+    \end{column}
+    \begin{column}{.5\textwidth}
+    \begin{figure}
+        \raggedright
+        \vspace{-3mm}
+        \includegraphics[width=.73\textwidth]{images/mnist-behavior/classic-pred-shuffled.png}
+        \caption*{}
+    \end{figure}
+    \end{column}
+    \end{columns}
+    
+\end{frame}
+
+\begin{frame}{Converted FGN Network - MNIST Behavior}
+    
+    \begin{block}{Converted FGN Network Parameters}
+    $\bullet$ Same architecture as the classic network $\bullet$ $\sigma = 10$\\
+    $\bullet$ Same behavior as the classic network over training and validation data.
+    \end{block}
+
+    \begin{columns}
+    \begin{column}{.5\textwidth}
+    \begin{figure}
+        \centering
+        \includegraphics[width=.82\textwidth]{images/mnist-behavior/converted-hist-val.png}
+        \caption*{ $>$99\% of confidences $>$0.5}
+    \end{figure}
+    \end{column}
+    \begin{column}{.5\textwidth}
+    \begin{figure}
+        \raggedright
+        \vspace{-3mm}
+        \includegraphics[width=.73\textwidth]{images/mnist-behavior/converted-pred-val.png}
+        \caption*{}
+    \end{figure}
+    \end{column}
+    \end{columns}
+    
+    
+\end{frame}
+
+\begin{frame}{Classic vs Converted - MNIST and Random Behavior}
+
+    \vspace{-3mm}
+    \begin{columns}
+    \begin{column}{.33\textwidth}
+    \begin{figure}
+        \includegraphics[width=.9\textwidth]{images/mnist-behavior/classic-hist-val.png}
+        \centering \tiny{$>$99\% of confidences $>$0.5}
+    \end{figure}
+    \end{column}
+    \begin{column}{.33\textwidth}
+    \begin{figure}
+        \includegraphics[width=.93\textwidth]{images/mnist-behavior/classic-hist-random.png}
+        \centering \tiny{66\% of confidences $>$0.5}
+    \end{figure}
+    \end{column}
+    \begin{column}{.33\textwidth}
+    \begin{figure}
+        \includegraphics[width=.91\textwidth]{images/mnist-behavior/classic-hist-shuffled.png}
+        \centering \tiny{78\% of confidences $>$0.5}
+    \end{figure}
+    \end{column}
+    \end{columns}
+    
+    \vspace{-3mm}
+    \begin{columns}
+    \begin{column}{.33\textwidth}
+    \begin{figure}
+        \includegraphics[width=.9\textwidth]{images/mnist-behavior/converted-hist-val.png}
+        \centering \tiny{$>$99\% of confidences $>$0.5}
+    \end{figure}
+    \end{column}
+    \begin{column}{.33\textwidth}
+    \begin{figure}
+        \includegraphics[width=.91\textwidth]{images/mnist-behavior/converted-hist-random.png}
+        \centering \tiny{37\% of confidences $>$0.5}
+    \end{figure}
+    \end{column}
+    \begin{column}{.33\textwidth}
+    \begin{figure}
+        \centering
+        \includegraphics[width=.91\textwidth]{images/mnist-behavior/converted-hist-shuffled.png}
+        \centering \tiny{45\% of confidences $>$0.5}
+    \end{figure}
+    \end{column}
+    \end{columns}
+    
+    
+\end{frame}
+
+\begin{frame}{Retrained FGN Network - MNIST Behavior}
+    
+    \begin{block}{Retrained FGN Network Parameters}
+    $\bullet$ Train converted network for \textbf{one} epoch $\bullet$ sigmas loss param $\lambda = 10^{-10}$
+    \end{block}
+
+    \begin{columns}
+    \begin{column}{.5\textwidth}
+    \begin{figure}
+        \centering
+        \includegraphics[width=.82\textwidth]{images/mnist-behavior/retrained-hist-val.png}
+        \caption*{ $>$99\% of confidences $>$0.5}
+    \end{figure}
+    \end{column}
+    \begin{column}{.5\textwidth}
+    \begin{figure}
+        \raggedright
+        \vspace{-3mm}
+        \includegraphics[width=.73\textwidth]{images/mnist-behavior/retrained-pred-val.png}
+        \caption*{}
+    \end{figure}
+    \end{column}
+    \end{columns}
+    
+\end{frame}
+
+\begin{frame}{Classic vs Retrained - MNIST and Random Behavior}
+
+    \vspace{-3mm}
+    \begin{columns}
+    \begin{column}{.33\textwidth}
+    \begin{figure}
+        \includegraphics[width=.85\textwidth]{images/mnist-behavior/classic-hist-val.png}
+        \centering \tiny{$>$99\% of confidences $>$0.5}
+    \end{figure}
+    \end{column}
+    \begin{column}{.33\textwidth}
+    \begin{figure}
+        \includegraphics[width=.9\textwidth]{images/mnist-behavior/classic-hist-random.png}
+        \centering \tiny{66\% of confidences $>$0.5}
+    \end{figure}
+    \end{column}
+    \begin{column}{.33\textwidth}
+    \begin{figure}
+        \includegraphics[width=.87\textwidth]{images/mnist-behavior/classic-hist-shuffled.png}
+        \centering \tiny{78\% of confidences $>$0.5}
+    \end{figure}
+    \end{column}
+    \end{columns}
+    
+    \vspace{-2mm}
+    \begin{columns}
+    \begin{column}{.33\textwidth}
+    \begin{figure}
+        \includegraphics[width=.85\textwidth]{images/mnist-behavior/retrained-hist-val.png}
+        \centering \tiny{$>$99\% of confidences $>$0.5}
+    \end{figure}
+    \end{column}
+    \begin{column}{.33\textwidth}
+    \begin{figure}
+        \includegraphics[width=.85\textwidth]{images/mnist-behavior/retrained-hist-random.png}\\
+        \centering \tiny{0.0\% of confidences $>$0.5}
+    \end{figure}
+    \end{column}
+    \begin{column}{.33\textwidth}
+    \begin{figure}
+        \centering
+        \includegraphics[width=.9\textwidth]{images/mnist-behavior/retrained-hist-shuffled.png}
+        \centering \tiny{0.05\% of confidences $>$0.5}
+    \end{figure}
+    \end{column}
+    \end{columns}
+    
+\end{frame}
+
+\begin{frame}{Classic vs FGN - EMNIST Letters}
+ \vspace{-3mm}
+    \begin{columns}
+    \begin{column}{.33\textwidth}
+    \begin{figure}
+        \includegraphics[width=.85\textwidth]{images/Letters/hist-classic-letters.png}\\
+        \centering \tiny{$>$73\% of confidences $>$0.5}
+    \end{figure}
+    \end{column}
+    \begin{column}{.33\textwidth}
+    \begin{figure}
+        \includegraphics[width=.85\textwidth]{images/Letters/hist-converted-letters.png}\\
+        \centering \tiny{42\% of confidences $>$0.5}
+    \end{figure}
+    \end{column}
+    \begin{column}{.33\textwidth}
+    \begin{figure}
+        \includegraphics[width=.85\textwidth]{images/Letters/hist-retrained-letters.png}\\
+        \centering \tiny{0\% of confidences $>$0.5}
+    \end{figure}
+    \end{column}
+    \end{columns}
+    
+    \vspace{-2mm}
+    \begin{columns}
+    \begin{column}{.33\textwidth}
+    \begin{figure}
+        \includegraphics[width=.85\textwidth]{images/Letters/classic-letters.png}
+    \end{figure}
+    \end{column}
+    \begin{column}{.33\textwidth}
+    \begin{figure}
+        \includegraphics[width=.85\textwidth]{images/Letters/converted-letters.png}
+    \end{figure}
+    \end{column}
+    \begin{column}{.33\textwidth}
+    \begin{figure}
+        \centering
+        \includegraphics[width=.85\textwidth]{images/Letters/retrained-letters.png}
+    \end{figure}
+    \end{column}
+    \end{columns}
+    
+\end{frame}
+
+
+\begin{frame}{Checkpoint}
+\textcolor{gray}{My works aims to:}
+\begin{itemize}
+    \item \textcolor{gray}{make it easy to convert existing models to the FGN architecture}
+    \item \textcolor{gray}{while preserving the existing model's behavior on real data}
+    \item and offering resistance against some adversarial attacks.
+\end{itemize}
+    
+\end{frame}
+
+
+\begin{frame}{FGSM Math and example}
+    
+\end{frame}
+
+\begin{frame}{Successful Attacks Comparison}
+    \begin{block}{}
+        Successful Attack: $\bullet$ changes the class $\bullet$ confidence above 0.5
+    \end{block}
+    \begin{figure}
+        \centering
+        \includegraphics[width=.88\textheight]{images/successful-attacks-comparisons/succesful_fgsm_count.png}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Results}
+\end{frame}
+\begin{frame}{Observations}
+\end{frame}
+\section{Proposal Work}
+\begin{frame}{Proposed Work}
+
+    To validate usefulness of Finite Gaussian Neurons, I propose to:
+    \begin{itemize}
+        \item 
+    \end{itemize}
+    % expand to: other task (audio)
+    % other type of network (GRU, Conv2D)
+    % other type of attack
+
+\end{frame}
+
+\begin{frame}{Citations}
+    \printbibliography
+
+\end{frame}
 
 
 \end{document}

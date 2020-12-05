@@ -15,15 +15,49 @@ Thanks everyone for being here.
 
 \section{Introduction}
 
-\section{Related Work}
+\section{Related Work - Adversarial Training}
+one idea is to augment the training data with adversarial examples.\\
+This was suggested in the original Goodfellow paper with FGSM. In this paper the authors explore how training on stronger adversarial examples (PGD projected gradient descent, a multi-step process) seem to provide some general guarantee against any gradient descent based attack.\\
+While there are many local maxima spread widely apart within xi + S, they tend to have very well-concentrated loss values.
+They found that despite the general non-convexity of the adversarial inputs hypersurface, and While there are many local maxima spread widely apart within xi + S, they tend to have very well-concentrated loss values, and so the PGD-created adversarial examples do generalize to 
+
+Conceptually: 
+Left: A set of points that can be easily separated with a simple (in this case, linear) decision boundary.\\
+Middle: The simple decision boundary does not separate the l∞-balls (here, squares) around the data points. Hence there are adversarial examples (the red stars) that will be misclassified.\\
+Right: Separating the  l∞-balls requires a significantly more complicated decision boundary. The resulting classifier is robust to adversarial examples with bounded l∞-norm perturbations.
 
 \section{Motivation}
 
 \section{The Classical Neuron}
+Here is the math for the classical neuron. I've isolated the linear component mentioned in the motivation.\\
+The math is often written with matrix and vector notation: W transpose X.
 
 \section{The Finite Gaussian Neuron}
+Here is the math for my finite gaussian neuron. It's identical to the classical neuron math except for the multiplication by g, the gaussian component.\\
+g is composed of two new trainable parameters: sigma that determines the range of the neuron, and the centers that place the neuron in the hyperspace.\\
+So if you are far from the centers, and sigma is small, the neuron will have no activity. If you are close and sigma is large, you will have the same activity at the phi(l) component.
 
 \section{2D - Neuron Activity Visualization}
+To visualize the differences between the two types of neurons, here are a few images of what it looks like in two dimensions, that is to say when the inputs are two dimensions.\\
+The first image shows the linear activity l, the weights times the inputs. The points where l is zero form a line across the space, here in black. As you move orthogonaly further from the line, you you get lines of various linear activity, growing to plus and minus infinite depending on the side.\\
+When you apply the non-linear activation function, for example the typical tanh function, you have most of the space with a +1 or -1 activity, and a thin infinite line that separates the whole space. In higher dimensions all these lines are planes and hyperplanes.\\
+Next you have the gaussian component: as previously explained this component is maximally active if the inputs are close to the center, and the further away the input, the closer the component gets to zero.\\
+When you combine the gaussian component with the classic neuron activity, you get this: a neuron that separate the input space into two half-circles, of positive and negative activity, and with all the remaining space having zero activity.\\
+
+\section{Bird's Eye View}
+So what am I hoping to accomplish by defining neurons this way?\\
+The main goal is to restrict the activity of a network built using these neurons to regions of the input hyperspace where data has been observed during training, while making no guess over regions never observed.\\
+Here is an example of 
+
+\section{Matching Classic Neuron Behavior}
+The first point I'd like to make is that FGNs can perfectly mimic the behavior of classical neurons over any given data.\\
+If you set sigma to be large enough (and the centers reasonably), then the g activity will be 1 over every inputs in the data.\\
+On these pictures I show what increasing sigma does, and you see that on the last picture the activity of the neuron looks identical to that of the classical neuron previously shown.
+
+\section{Conversion}
+As a brief aside, the method I used to convert classic networks to FGN networks is simple and can absolutely be improved in the future.\\
+There are two new parameters to define, the centers and the range sigma.\\
+I just set the centers of the neuron to be the point on the zero line (define by the neuron weights) closest to the origin, and the sigma large enough to not change the network behavior.
 
 \section{Training the FGN}
 We adapt the traditional loss function (for example: mean-squared error, cross-entropy) by adding a term that pressures the size of the neurons, the sigma, to go down. \\
@@ -35,8 +69,8 @@ the changes to all params depend on the gaussian activity g. when g is zero (we 
 For the centers, if the prediction is correct, the center moves toward the data point, otherwise moves away (not to self: ideally it would not depend on the prediction? also enforce neuron separation?). 
 dy/dc : depends on phi(l) being correct, so have large sigma at first so that the centers don't move much, until they are mostly correct and then shrink sigmas to move towards centers of data.\\
 For the sigma (size of neuron), there is only a small zone in which its not zero: if sigma is large or small, the gradient is zero, and then the only changes will be from the regularization term in the loss (pressure to be smaller).
-
-
+Training networks built using FGNs is nothing special, gradient descent and backprogation to minimize a loss function (MSE, crossentropy or other).\\
+I've written out what the partial gradients for each parameters
 
 \section{2D Toy Data - Single Neuron Training Example}
 Sanity check: verifying that gradient descent and backprop work for a single finite gaussian neuron (perceptron equivalent) on a linearly separable problem, while restricting activity to the data.\\
@@ -60,6 +94,12 @@ some risks I discovered:\\
 
 \section{Matching Classical Neuron Behavior}
 consequence of property:  every classical neural net can be converted to a finite gaussian neural net with identical behavior over a given dataset, by making the sigmas large enough.
+
+\section{Conversion - Initialization of Centers and Range}
+Converting a classical neuron to finite gaussian neuron involves two free (unconstrained) parameters, the neuron's centers and range.\\
+I opted for a simple approach, but it's definitely possible to improve this in the future.\\
+Centers are chosen to be on the zero line, at the point closest to the origin. Here the center is the red dot\\
+Range sigma is set to be large enough as to not change the behavior of the network on the data. 
 
 \section{Variants - Different $p$-norms}
 
@@ -110,5 +150,24 @@ Finally an implementation detail, since the data is not normalized to mean 0 var
 As an brief aside, you may wonder why the gaussian gate is needed, when we could just combine FGNs naively.\\
 When you do that, activity far from data makes the first layer go to zero activity, as expected and desired, but subsequent layers will report the activity from the (0,0,0...0) point hyperspace, which has no reason to be zero.\\
 So what you get is a default constant, but unpredictable, activity over all the space far from the data.
+
+\section{MNIST and Random Datasets}
+Now that I've given a theoretical overview of the finite gaussian neuron (math, what I hope to achieve, toy problems for visualization), I'm going to explore the behavior over a more realistic dataset, MNIST.
+
+\section{Classic Network - MNIST Behavior}
+
+\section{Classic Network - Fully Random Noise Behavior}
+
+\section{Classic Network - Shuffled Images Behavior}
+
+\section{Converted FGN Network - MNIST Behavior}
+
+\section{Classic vs Converted - MNIST and Random Behavior}
+
+\section{Retrained FGN Network - MNIST Behavior}
+
+\section{Classic vs Retrained - MNIST and Random Behavior}
+
+\section{Checkpoint}
 
 \end{document}
