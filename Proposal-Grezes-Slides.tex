@@ -4,10 +4,24 @@
 \usepackage[utf8]{inputenc}
 \usepackage{subfig}
 \usepackage{tikz}   
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=false,
+    citecolor=black,
+    filecolor=magenta,      
+    urlcolor=cyan,
+}
 \captionsetup[subfloat]{labelformat=empty}
 
-\usepackage{biblatex}
-\bibliography{bibl.bib}
+% \usepackage{biblatex}
+\usepackage[
+backend=biber,
+style=numeric,
+% citestyle=numeric
+bibstyle=ieee
+]{biblatex}
+
+\addbibresource{bibl.bib} %Imports bibliography file
 
 \title[FGNs vs Adversarial Attacks] %optional
 {Finite Gaussian Neurons}
@@ -23,8 +37,8 @@
   City University of New York
 }
 
-\date[Thesis Proposal - Fall 2020] % (optional)
-{Thesis Proposal Fall 2020}
+\date[Thesis Proposal - Spring 2021] % (optional)
+{Thesis Proposal Fall 2021}
 
 \logo{\includegraphics[height=1.5cm]{images/gc_logo_286_3_300px_511px.png}}
 
@@ -40,7 +54,7 @@
 
 \section{Abstract}
 \begin{frame}{Abstract}
-Artificial neural networks have been shown to be vulnerable to adversarial attacks, which can imperceptibly alter inputs to fool the network into make wrong or nonsensical predictions.\\
+Artificial neural networks have been shown to be vulnerable to adversarial attacks, which can imperceptibly alter inputs to fool the network into making wrong or nonsensical predictions.\\
 \vspace{2mm}
 In this work I introduce the Finite Gaussian Neuron, a novel neuron architecture for artificial neural networks.\\
 \vspace{2mm}
@@ -55,15 +69,85 @@ My works aims to:
 \end{frame}
 
 
-\section{Introduction}
-\begin{frame}{Introduction}
+\section{Introduction }
+% \subsection{Definitions}
+\begin{frame}{Introduction - Definitions}
+    \begin{columns}
+    \begin{column}{.29\textwidth}
+    \vspace*{-4mm}
+    \begin{figure}
+        \includegraphics[width=1.\textwidth]{images/Definitions-examples/sly_ex.png}
+    \end{figure}
+    \vspace{-6mm}
+    \centering{\tiny{ A Successful Attack (\cite{Mikhailov2017How} \href{https://blog.ycombinator.com/how-adversarial-attacks-work/}{Mikhailov}) }}
+    \vspace{-1mm}
+    \begin{figure}
+        \includegraphics[width=.93\textwidth]{images/Definitions-examples/uninteresting attacks.png}
+    \end{figure}
+    \vspace{-6mm}
+    \centering{\tiny{Uninteresting Attacks}}
+    \end{column}
+    
+    \begin{column}{.55\textwidth}
+        \vspace{-10mm}
+        \begin{block}{Adversarial Examples}
+            $\bullet$ An input to a trained model specifically designed to fool the model.\\
+        \end{block}
+    
+        \begin{block}{Adversarial Attack}
+            $\bullet$ A method of generating adversarial examples.\\
+        \end{block}
+        
+        \begin{block}{Successful Attack Metrics}
+            $\bullet$ confidence $\bullet$ distortion $\bullet$ un/targeted\\
+             $\bullet$ white/blackbox $\bullet$ universal/tailored
+        \end{block}
+    \end{column}
+    \end{columns}
+    
+\end{frame}
+% \subsection{Motivation}
+\begin{frame}{Introduction - Motivation}
+    \centering \emph{Why are neural networks susceptible to adversarial attacks?}
+
+    \begin{block}{Theory}
+    A combination of the artificial neuron's \textbf{piece-wise linearity} combined with the \textbf{curse of dimensionality}, leading to:
+    \begin{itemize}
+        \item excessive confidence and generalization far from the training data,
+        \item and inputs being close to the predicted borders with other classes.
+    \end{itemize}
+    \end{block}
+    
+    \begin{columns}
+    \begin{column}{.34\textwidth}
+    \begin{figure}
+        \includegraphics[width=.8\textwidth]{images/Motivation/pred_noise.png}
+        \caption*{Predictions over white noise}
+    \end{figure}
+    \end{column}
+    \begin{column}{.34\textwidth}
+    \begin{figure}
+        \includegraphics[width=1.\textwidth]{images/Motivation/boundaries.png}
+        \caption*{Class boundaries on MNIST}
+    \end{figure}
+    \end{column}
+    \end{columns}
     
 \end{frame}
 
+% \subsection{Related Work}
+\begin{frame}{Related Work - Fast Gradient Sign Method}
+    \begin{block}{}
+    For each input dimension, take one fixed-size step in the direction of the gradient of the loss with regards to the input.
+    \end{block}
 
-\section{Related Work}
+   \begin{figure} 
+       \includegraphics[width=0.9\textwidth]{images/Related-Work/FGSM-Example.PNG}
+       \caption*{\cite{goodfellow2015explaining} \fullcite{goodfellow2015explaining}}
+   \end{figure}
+\end{frame}
 
-\begin{frame}{Related Work - Adversarial Training \cite{madry2019deep}}
+\begin{frame}{Related Work - Adversarial Training}
     \begin{block}{Train on Adversarial Examples from Multi-step Gradient-based Attack }
         $\bullet$ Pros: potential universal robustness (vs first-order methods) \\
         $\bullet$ Cons: requires larger networks, generating examples, and retraining 
@@ -71,37 +155,60 @@ My works aims to:
     
    \begin{figure} 
        \includegraphics[width=0.9\textwidth]{images/Related-Work/adversarial-training.PNG}
-       \caption*{\fullcite{madry2019deep}}
+       \caption*{\cite{madry2019deep} \fullcite{madry2019deep}}
    \end{figure}
     
 \end{frame}
 
-\begin{frame}{Related Work - Distillation \cite{Papernot2016DistillationAA} }
+\begin{frame}{Related Work - Distillation}
 
-    \begin{block}{}
-         $\bullet$ Cons: requires generating class probabilities, retraining.
+    \begin{block}{Retrain on Output Predictions Vectors}
+        $\bullet$ Pros: defends against attacks by reducing input sensitivity.\\
+        $\bullet$ Cons: requires generating class probabilities, retraining.
     \end{block}
 
     
    \begin{figure} 
-       \includegraphics[width=0.9\textwidth]{images/Related-Work/distillation.png}
-       \caption*{\fullcite{Papernot2016DistillationAA}}
+       \includegraphics[width=0.8\textwidth]{images/Related-Work/distillation.png}
+       \caption*{\cite{Papernot2016DistillationAA} \fullcite{Papernot2016DistillationAA}}
    \end{figure}
     
 \end{frame}
 
 \begin{frame}{Related Work - Radial Basis Function Networks}
+    \begin{block}{}
+        $\bullet$ Pros: Naturally resistant to rubbish and adversarial examples\\
+        $\bullet$ Cons: Single layer, prototype pre-training
+    \end{block}
+    
+    \begin{figure} 
+    \begin{columns}
+    \begin{column}{.49\textwidth}
+       \includegraphics[width=0.99\textwidth]{images/Related-Work/RBF-net-low-qual.jpg}
+    \end{column}
+    
+    \begin{column}{.49\textwidth}
+        \begin{align*}
+        \phi_i(x) &= \exp (-\frac{||x-c_i||^2}{2\sigma_i^2})\\
+        y_k &= \sum_{i=1}^n w_{jk}\phi_i(x)
+        \end{align*}
+    \end{column}
+    \end{columns}
+    \caption*{\cite{samui2017handbook} \fullcite{samui2017handbook}\\
+    \cite{chenou2019radial} \fullcite{chenou2019radial}}
+    \end{figure} 
 
 \end{frame}
 
-\begin{frame}{Related Work - Bayesian Neural Networks}
+% \begin{frame}{Related Work - Bayesian Neural Networks}
+% % Q: BNNs can also answer "i don't know". How do FGNs differ?
+% % Ensembles are not resistant to adversarial examples.
+% \end{frame}
 
-\end{frame}
+% \begin{frame}{Recent Advances: }
+    
+% \end{frame}
 
-\section{Motivation}
-\begin{frame}{Motivation}
-
-\end{frame}
 
 
 \section{The Finite Gaussian Neuron}
@@ -109,6 +216,7 @@ My works aims to:
 \begin{frame}{The Classical Neuron}
     % Classic neuron math
     \begin{block}{Neuron Output}
+        \vspace{-1.5mm}
         $$y = \varphi(\ell)$$
     \end{block}
     \begin{block}{Linear Component}
@@ -227,9 +335,9 @@ My works aims to:
     $$ y =  \varphi(\ell)*g = \tanh(\sum_i x_i w_i) * e^{\frac{-1}{\sigma^2}\sum_{i}(x_i-c_i)^2}$$
     \vspace{-0.6cm}
     \begin{align*}
-        \frac{\partial y}{\partial w_i} &=  x_i \varphi'(\ell) * g  \\[1em]
-        \frac{\partial y}{\partial c_i} &= \varphi(\ell) * \frac{2(x_i-c_i)}{\sigma^2} * g \\[1em]
-        \frac{\partial y}{\partial \sigma} &= \varphi(\ell) * \frac{2\sum_{i}(x_i-c_i)^2}{\sigma^3}* g
+        \text{Weights:\quad} \frac{\partial y}{\partial w_i} &=  x_i \varphi'(\ell) * g  \\[1em]
+        \text{Centers:\quad} \frac{\partial y}{\partial c_i} &= \varphi(\ell) * \frac{2(x_i-c_i)}{\sigma^2} * g \\[1em]
+        \text{Sigmas:\quad} \frac{\partial y}{\partial \sigma} &= \varphi(\ell) * \frac{2\sum_{i}(x_i-c_i)^2}{\sigma^3}* g
     \end{align*}
     \end{block}
     \end{frame}
@@ -264,34 +372,38 @@ My works aims to:
 \end{frame}
 
 \begin{frame}{Variants - Different $p$-norms}
+    \vspace{-0.3cm}
     \begin{block}{Gaussian Component with $p$-norm}
         $$ g = e^{\frac{-1}{\sigma^2}\lVert x_i-c_i \lVert_p }$$
-    \end{block} ~\\
-    
+    \end{block}
+    \vspace{0.1cm}
+    \centering
+    \begin{minipage}{0.87\textwidth}
     \begin{columns}
-    \hspace{-0.2cm}
-    \begin{column}{.27\textwidth}
-            \includegraphics[width=\textwidth]{images/Variants-Norms/ord0.5_g-cropped.png}\\
-            \includegraphics[width=\textwidth]{images/Variants-Norms/ord0.5-cropped.png}\\
-            \centering $p=0.5$
-    \end{column} \\
-    \hspace{0.1cm}
-    \begin{column}{.27\textwidth}
-            \includegraphics[width=\textwidth]{images/Variants-Norms/ord1_g-cropped.png}\\
-            \includegraphics[width=\textwidth]{images/Variants-Norms/ord1-cropped.png}\\
-            \centering $p=1$
-    \end{column} \\
-    \hspace{0.1cm}
-    \begin{column}{.27\textwidth}
-            \includegraphics[width=\textwidth]{images/Variants-Norms/ord3_g-cropped.png}\\
-            \includegraphics[width=\textwidth]{images/Variants-Norms/ord3-cropped.png}\\
-            \centering $p=3$
+    \begin{column}{.33\textwidth}
+        \raggedright
+        \includegraphics[width=0.98\textwidth]{images/Variants-Norms/ord0.5_g-cropped.png}\\
+        \includegraphics[width=\textwidth]{images/Variants-Norms/ord0.5-cropped.png}\\
+        \centering $p=0.5$
+    \end{column}
+    \begin{column}{.33\textwidth}
+        \raggedright
+        \includegraphics[width=0.98\textwidth]{images/Variants-Norms/ord1_g-cropped.png}\\
+        \includegraphics[width=\textwidth]{images/Variants-Norms/ord1-cropped.png}\\
+        \centering $p=1$
+    \end{column} 
+    \begin{column}{.33\textwidth}
+        \raggedright
+        \includegraphics[width=0.98\textwidth]{images/Variants-Norms/ord3_g-cropped.png}\\
+        \includegraphics[width=\textwidth]{images/Variants-Norms/ord3-cropped.png}\\
+        \centering $p=3$
     \end{column}
     \end{columns}
+    \end{minipage}
 \end{frame}
 
 \begin{frame}{Variants - Decoupled Bias/Centers}
-
+    \vspace{-0.7cm}
     \begin{block}{}
     The default behavior is to have the bias of the linear term $\ell$ be \emph{unrestricted}: ie: not defined by the centers of the Gaussian term $g$.
     \end{block}
@@ -479,8 +591,8 @@ My works aims to:
 \section{Networks over MNIST}
 
 \begin{frame}{MNIST and Random Datasets}
-    \begin{block}{MNIST Dataset}
-    $\bullet$ 50/10/10 K images for train/val/test $\bullet$ 28*28 256 valued grayscale pixels\\ 
+    \begin{block}{MNIST Dataset \tiny{(\cite{lecun-mnisthandwrittendigit-2010} LeCun et al.)} }
+    $\bullet$ 50K/10K/10K images for train/val/test $\bullet$ 28*28 8bit grayscale pixels\\ 
     \end{block}
     \begin{block}{Random Images Dataset}
     $\bullet$ Fully random pixels (changes mean/variance)\\
@@ -791,10 +903,6 @@ My works aims to:
 \end{frame}
 
 
-\begin{frame}{FGSM Math and example}
-    
-\end{frame}
-
 \begin{frame}{Successful Attacks Comparison}
     \begin{block}{}
         Successful Attack: $\bullet$ changes the class $\bullet$ confidence above 0.5
@@ -805,24 +913,165 @@ My works aims to:
     \end{figure}
 \end{frame}
 
-\begin{frame}{Results}
+\begin{frame}{Successful Attacks Comparison (continued)}
+   \begin{tikzpicture}
+        \node (img1) {\includegraphics[height=3.7cm]{images/successful-attacks-comparisons/fgsm-comp-0.png}};\pause
+        \node (img2)at(img1.south east) [xshift=-1.2cm][yshift=-0.8cm]{\includegraphics[height=3.7cm]{images/successful-attacks-comparisons/fgsm-comp-1.png}};\pause
+        \node (img3)at(img2.north east) [xshift=-1.2cm][yshift=0.8cm]{\includegraphics[height=3.7cm]{images/successful-attacks-comparisons/fgsm-comp-2.png}};\pause
+        \node (img4)at(img3.south east) [xshift=-1.2cm][yshift=-0.8cm]{\includegraphics[height=3.7cm]{images/successful-attacks-comparisons/fgsm-comp-3.png}};\pause
+        \node (img5)at(img4.north east) [xshift=-1.2cm][yshift=0.8cm]{\includegraphics[height=3.7cm]{images/successful-attacks-comparisons/fgsm-comp-4.png}};
+    \end{tikzpicture}
 \end{frame}
-\begin{frame}{Observations}
-\end{frame}
-\section{Proposal Work}
-\begin{frame}{Proposed Work}
 
-    To validate usefulness of Finite Gaussian Neurons, I propose to:
+
+\begin{frame}{Observations - FGSM Boundaries}
+
+    \centering{Starting from an image, where does the FGSM adversarial example land?}
+   \begin{tikzpicture}
+        \node (img1){\includegraphics[width=0.6\textwidth]{images/observations/classic-bounds.png}};\pause
+        \node (img2)at(img1.center)[xshift=0cm]{\includegraphics[width=0.6\textwidth]{images/observations/converted-bounds.png}};\pause
+        \node (img3)at(img2.center)[xshift=0cm]{\includegraphics[width=0.64\textwidth]{images/observations/long-bounds.png}};
+    \end{tikzpicture}
+    
+\end{frame}
+
+\begin{frame}{Observations - Space in between Images}
+
+    \centering{What the space in between two images look like?}
+   \begin{tikzpicture}
+        \node (img1){\includegraphics[width=0.6\textwidth]{images/observations/classic-img8toimg4.png}};\pause
+        \node (img2)at(img1.center)[xshift=0cm]{\includegraphics[width=0.6\textwidth]{images/observations/converted-img8toimg4.png}};\pause
+        \node (img3)at(img2.center)[xshift=0cm]{\includegraphics[width=0.64\textwidth]{images/observations/long-img8toimg4.png}};
+    \end{tikzpicture}
+    
+\end{frame}
+
+\section{Remaining Work}
+\begin{frame}{Remaining Work}
+
+    Currently Finite Gaussian Neurons:
     \begin{itemize}
-        \item 
+        \item \textcolor{gray}{make it easy to convert existing models to the FGN architecture}
+        \item \textcolor{gray}{while preserving the existing model's behavior on real data}
+        \item \textcolor{gray}{and offering resistance against some adversarial attacks.} 
     \end{itemize}
-    % expand to: other task (audio)
-    % other type of network (GRU, Conv2D)
-    % other type of attack
+    ~
+
+    To further validate the usefulness of Finite Gaussian Neurons, I want to:
+    \begin{itemize}
+        \item implement a finite Gaussian version of the convolutional layer,
+        \item test against PGD and Carlini-Wagner attacks,
+        \item test the transferability of examples,
+        \item and expanding to CIFAR-10 and SPEECHCOMMANDS tasks.
+    \end{itemize}
+    All while continuing to explore their properties and best practices, and comparing to other research.
+\end{frame}
+
+\begin{frame}{Convolutional Layer}
+% Popularized in 2012 with Alexnet on Imagenet.
+\begin{figure}
+    \centering
+    \includegraphics[width=.85\textwidth]{images/image net.png}
+    \caption*{Alexnet by \cite{krizhevsky2012imagenet} \fullcite{krizhevsky2012imagenet}}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Projected Gradient Descent and Carlini-Wagner Attack}
+    \begin{block}{PGD Attack: Iterated FGSM}
+    \centering $x^{t+1} = \Pi_{x+S}(x^t + \epsilon(\text{sign}(\nabla_x L(\Theta, x, y)  ))$
+    \end{block}
+
+    \begin{block}{Carlini-Wagner Attack}
+    Given $x,t$, search for $w$ that solves:
+    \begin{center}{minimize $||\frac{1}{2}(\text{tanh}(w)+1) -x||_2^2 + c \cdot f(\frac{1}{2}(\text{tanh}(w)+1) $} \end{center}
+    with $f$ defined as:
+    \begin{center}{$f(x') = \text{max}(\text{max}\{Z(x')_i : i\neq t\} - Z(x')_t, -K)$} \end{center}
+    \cite{carlini2017evaluating} \fullcite{carlini2017evaluating}
+    \end{block}
+\end{frame}
+
+\begin{frame}{Transferability of Examples}
+    
+    Test Finite Gaussian Networks against:
+    \begin{itemize}
+        \item adversarial examples generated using another model,
+        \item and universal perturbations (\cite{moosavidezfooli2017universal} Moosavi-Dezfooli et al.)
+    \end{itemize}
+    
+\end{frame}
+
+
+\begin{frame}{CIFAR-10 and SPEECHCOMMANDS}
+    \begin{block}{ CIFAR-10 \tiny{(\cite{Krizhevsky2009LearningML} Krizhevsky et al.)} }
+    $\bullet$ 60K Images $\bullet$ 32*32 color images $\bullet$ 10 classes
+    \end{block}
+    \begin{figure}
+        \includegraphics[width=0.66\textwidth]{images/cifar10.png}
+    \end{figure}
+    
+    \begin{block}{SPEECHCOMMANDS \tiny{(\cite{DBLP:journals/corr/abs-1804-03209} Pete Warden)} }
+    $\bullet$ 65K one-second long utterances $\bullet$ 30 short words\\
+    $\bullet$ single channel $\bullet$ thousands of different speakers
+    \end{block}
+    \begin{figure}
+        \includegraphics[width=0.36\textwidth]{images/yes.jpg}
+        \caption*{\emph{yes}}
+    \end{figure}
+    
+\end{frame}
+
+\begin{frame}{Properties, Best Practices, and Other Research}
+    % prop 1: empty space in between classes? what are those filaments
+    % make the derivative of the centers not rely on good/bad classification
+    % best practice: init of size, centers, impact of p-norm?
+
+    \begin{block}{Properties}
+    \begin{itemize}
+        \item What is going on in spaces in between classes?
+        \item Can the training of centers be made independent of classification?
+    \end{itemize}
+    \end{block}
+    
+    \begin{block}{Best Practices}
+    \begin{itemize}
+        \item How to initialize the sizes and centers of FGNs?
+        \item When to retrain models and for how long?
+        \item Do the variants (p-norms, covariance matrix) help in any way?
+    \end{itemize}
+    \end{block}
+    
+    \begin{block}{Comparison to Other Research}
+    \begin{itemize}
+        \item Bayesian Neural Networks
+        % Ensembles are not resistant to adversarial examples.
+        \item Training Speed: \emph{Fast is Better Than Free} \cite{wong2020fast} by Wong et al.
+
+    \end{itemize}
+    
+    \end{block}
+    
+\end{frame}
+
+
+\begin{frame}{Open Source}
+    
+    \begin{block}{}
+    All the code is available at:\\
+    \quad $\bullet$ \url{https://github.com/grezesf/FGN---Research}.\\
+    ~\\
+    It includes:\\
+    \quad $\bullet$ library of functions to implement your own FGNs or convert existing networks to FGNs.\\
+    \quad $\bullet$ all the notebooks used to run experiments, analyse results, and generate the figures.
+
+    \end{block}
+    \centering
+    \includegraphics[width=.08\textheight]{images/misc/GitHub-Mark.png} 
+    \includegraphics[width=.4\textheight]{images/misc/gpl3.PNG}
 
 \end{frame}
 
-\begin{frame}{Citations}
+
+\begin{frame}[allowframebreaks]{Citations}
     \printbibliography
 
 \end{frame}

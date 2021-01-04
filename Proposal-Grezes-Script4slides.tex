@@ -7,26 +7,77 @@
 \section{Title}
 \textbf{Script for the proposal presentation: Finite Gaussian Neurons - A Defense Against Adversarial Attacks?} by Felix Grezes.\\
 
-Thanks everyone for being here.
+Hello Everyone. Thanks for being here.\\
+Today I am going to give you a first look at my thesis proposal, that I plan on giving ASAP in the Spring.\\
+I have a lot to say and may have to go a bit fast, but don't hesitate to stop me to ask questions, point out typos or anything confusing.\\
+I really appreciate any feedback.
 
 \section{Table of Contents}
 
 \section{Abstract}
 
-\section{Introduction}
+\section{Introduction - Definitions}
+Some background: when I say adversarial example, I mean
+an input to a trained model (an image for example), that is designed (hand-crafted) to fool this model into producing the wrong output.\\
+An attack is a method to produce such examples, and the success of the attack's adversarial examples is measure by a number of metric:\\
+How confident the model is in it's wrong prediction; how noticeable is the attack; are we aiming to a specific wrong class/output for the model (targeted) or just something 
+ wrong (or even a lack of predictions); do we have access to the model/training data (whitebox) or not; is the attack generating universal perturbations (that can be applied to any input) or are they tailored to the original input... and more I'm sure.\\
+In practice the term attack is used to mean anything from the adversarial example, adversarial noise, the method, sometimes only applied when the attack is successful. So it pays to be precise with terms while being aware of how others use them, but even I often slip and use the word attack liberally.\\
+Also I will restrict my focus to neural networks, even if the terms could apply to other types of models.
+
+
+\section{Introduction - Motivation}
+To motivate my work, I want state what are some of the explanations put forward by other explaining why neural nets seem susceptible to attacks.\\
+The main culprit, in what I understand of NNs, is that the piece-wise linearity the artificial neuron leads to excessive confidence on parts of the input space far from the data.\\
+So a layer is built from neurons that split the space linearly, and combined to for a complex shape. but as at the extreme, there will always be one neuron that takes over.\\
+You can see this by noticing that neural networks typically make strong predictions on random noise, as shown in the figure on the left. Model I trained to recognize MNIST digits, and every red square is over 0.5 confidence in a class.\\
+
+Secondly, unintuitive properties of high-dimensional spaces lead to unexpected behavior for the neural nets.\\
+In particular distances become harder for humans to visualize. For example in the previous slide's figure, the two pictures of Stallone are indistinguishable by humans, but for a neural network they may a well be completely different images. The sum of all the tiny changes on the image, invisible to humans, lead to a large euclidean distance, and a large difference in neuron activation.\\
+But even on short euclidean distances behaviors can be surprising\\
+For example, again typically for a simple neural nets, every point in the input space is close to the border with other classes.\\
+This is harder to show but in figure 2 on the right, what I plotted is the neighborhood slices as you move from one image to another (linearly). Ill reexplain this plot later, but you can see here is that as I make slight changes from one picture to another, and look in an orthogonal direction, I see all kinds of other classes. The equivalent in on a 2D world map would be walking in a straight line from Paris to Berlin, and every time you take a single step left or right, you're in a different country that's not France or Germany. And this would be true for any pair of cities.\\
+Keep in mind that this is a model that has high accuracy on the real data, both train and validation set.\\
+
+So I would say the central motivation of my thesis, is the belief that if you can build a neural network model without these 2 issues (excessive confidence and weird border closeness), you would have a model resistant to adversarial attacks, and I chose to build such a model by dealing with the piece-wise linearity.
+
+\section{Related Work - FGSM }
+Moving on, I'm briefly going to go over how others have tackled the issue and how what I propose today differs.\\
+First, how are these adversarial examples generated?\\
+The first, and the one I'll be focusing on for this presentation, is the FGSM.\\
+It naturally limits the l-inf distance between the original image and adversarial examples.\\
+It can be targeted to a specific class by changing Y.\\
+% It can be iterated into PGD projected gradient DescenT.
 
 \section{Related Work - Adversarial Training}
-one idea is to augment the training data with adversarial examples.\\
+The first proposed defense was to augment the training data with adversarial examples.\\
 This was suggested in the original Goodfellow paper with FGSM. In this paper the authors explore how training on stronger adversarial examples (PGD projected gradient descent, a multi-step process) seem to provide some general guarantee against any gradient descent based attack.\\
-While there are many local maxima spread widely apart within xi + S, they tend to have very well-concentrated loss values.
-They found that despite the general non-convexity of the adversarial inputs hypersurface, and While there are many local maxima spread widely apart within xi + S, they tend to have very well-concentrated loss values, and so the PGD-created adversarial examples do generalize to 
-
-Conceptually: 
+They found that despite the general non-convexity of the adversarial inputs hypersurface, and While there are many local maxima spread widely apart within xi + S, they tend to have very well-concentrated loss values, and so the PGD-created adversarial examples do generalize.\\
+Conceptually: \\
 Left: A set of points that can be easily separated with a simple (in this case, linear) decision boundary.\\
 Middle: The simple decision boundary does not separate the l∞-balls (here, squares) around the data points. Hence there are adversarial examples (the red stars) that will be misclassified.\\
 Right: Separating the  l∞-balls requires a significantly more complicated decision boundary. The resulting classifier is robust to adversarial examples with bounded l∞-norm perturbations.
 
-\section{Motivation}
+\section{Related Work - Distillation}
+Distillation is another technique that as been shown to offer protection against attacks.\\
+Original designed as a method to reduce the size of DNNs by transferring knowledge from larger to smaller networks. It works by training a large network, then using the output prediction vectors as soft-labels to train a smaller network. This way knowledge of class similarities is encoded and the network isn't as harshly punished for predicting a 7 when the image is a  1, for example.\\
+Here the authors show that retraining the same network on these soft labels, provides defense against attacks. Some of the findings are:distillation leads gradients used in adversarial sample creation to be reduced by a factor of
+10\^30. We also find that distillation increases the average minimum
+number of features that need to be modified to create adversarial
+samples by about 800\% on one of the DNNs we tested.
+Interestingly, Adversarial Training is related to larger networks while distillation is related to smaller networks, suggesting that network size isn't necessarily related to adversarial defenses.
+
+\section{Related Work - Radial Basis Function Networks}
+Many similarities to my idea:\\
+Have a layer of neurons with limited range\\
+ - natural defense against rubbish data and shown to have adversarial resistance\\
+ - single layer, can it work on for more complex models or tasks? I know Goodfellow said he was unable to train RBFs.\\
+ also have to place the centers/protoypes, which may require extra work (knn-clustering is often mentioned). That said my proposed architecture may require some of that too. 
+
+\section{Related Work - Bayesian NN}
+
+
+Now we can move to my own work
 
 \section{The Classical Neuron}
 Here is the math for the classical neuron. I've isolated the linear component mentioned in the motivation.\\
@@ -36,6 +87,7 @@ The math is often written with matrix and vector notation: W transpose X.
 Here is the math for my finite gaussian neuron. It's identical to the classical neuron math except for the multiplication by g, the gaussian component.\\
 g is composed of two new trainable parameters: sigma that determines the range of the neuron, and the centers that place the neuron in the hyperspace.\\
 So if you are far from the centers, and sigma is small, the neuron will have no activity. If you are close and sigma is large, you will have the same activity at the phi(l) component.
+Obviously there is more computation, so that's a tradeoff.
 
 \section{2D - Neuron Activity Visualization}
 To visualize the differences between the two types of neurons, here are a few images of what it looks like in two dimensions, that is to say when the inputs are two dimensions.\\
@@ -47,7 +99,7 @@ When you combine the gaussian component with the classic neuron activity, you ge
 \section{Bird's Eye View}
 So what am I hoping to accomplish by defining neurons this way?\\
 The main goal is to restrict the activity of a network built using these neurons to regions of the input hyperspace where data has been observed during training, while making no guess over regions never observed.\\
-Here is an example of 
+Here is an example of that.
 
 \section{Matching Classic Neuron Behavior}
 The first point I'd like to make is that FGNs can perfectly mimic the behavior of classical neurons over any given data.\\
@@ -60,17 +112,16 @@ There are two new parameters to define, the centers and the range sigma.\\
 I just set the centers of the neuron to be the point on the zero line (define by the neuron weights) closest to the origin, and the sigma large enough to not change the network behavior.
 
 \section{Training the FGN}
+Training networks built using FGNs is nothing special, gradient descent and backprogation to minimize a loss function (MSE, crossentropy or other).\\
 We adapt the traditional loss function (for example: mean-squared error, cross-entropy) by adding a term that pressures the size of the neurons, the sigma, to go down. \\
 I started off with the sum of the square of the sigmas, similar to traditional weights regularization, forcing the sigmas down as we minimize the error, with some small factor lambda compared to the more important part of the loss function.\\
 There isn't an analogous regularization term for the centers. The all zero's location in the N-dim space isn't special. \\
 Here are the partial derivatives for the various parameters, to be used by the backpropagation algorithm. Of course the exact gradient depends on the cost function chosen (MSE, Cross-Entropy), and the phi non-linearity, but these can still help us guide our intuition.\\
 The takeaways are:\\
 the changes to all params depend on the gaussian activity g. when g is zero (we are far from the center of the neuron, the sigma is too small), there are no changes to the neuron. This indicates that we need to initialize the neuron properly. If we don't and the g activity is zero everywhere, we won't be able to learn.\\
-For the centers, if the prediction is correct, the center moves toward the data point, otherwise moves away (not to self: ideally it would not depend on the prediction? also enforce neuron separation?). 
+For the centers, if the prediction is correct, the center moves toward the data point, otherwise moves away (not to self: ideally it would not depend on the prediction? also enforce neuron separation?). \\
 dy/dc : depends on phi(l) being correct, so have large sigma at first so that the centers don't move much, until they are mostly correct and then shrink sigmas to move towards centers of data.\\
-For the sigma (size of neuron), there is only a small zone in which its not zero: if sigma is large or small, the gradient is zero, and then the only changes will be from the regularization term in the loss (pressure to be smaller).
-Training networks built using FGNs is nothing special, gradient descent and backprogation to minimize a loss function (MSE, crossentropy or other).\\
-I've written out what the partial gradients for each parameters
+For the sigma (size of neuron), there is only a small zone in which its not zero: if sigma is large or small, the gradient is zero, and then the only changes will be from the regularization term in the loss (pressure to be smaller).\\
 
 \section{2D Toy Data - Single Neuron Training Example}
 Sanity check: verifying that gradient descent and backprop work for a single finite gaussian neuron (perceptron equivalent) on a linearly separable problem, while restricting activity to the data.\\
@@ -102,6 +153,8 @@ Centers are chosen to be on the zero line, at the point closest to the origin. H
 Range sigma is set to be large enough as to not change the behavior of the network on the data. 
 
 \section{Variants - Different $p$-norms}
+There are some design choices I made that can be modified. If you use different norms in g you maintain the same property (large sigma = classic neuron), with different looking activity. Maybe these help in higher dimensions, though I have not noticed a real difference. I use 2-norm for now.
+
 
 \section{Variants - Decoupled Bias/Center}
 In the previous pictures, the center of the gaussian term aligned itself with bias of the linear component of the neuron. This is done by restricting the bias term of the linear component and by computing it based off the centers of the gaussian component.  In practice this isn't required, and there is no such restriction.\\
@@ -154,13 +207,21 @@ So what you get is a default constant, but unpredictable, activity over all the 
 \section{MNIST and Random Datasets}
 Now that I've given a theoretical overview of the finite gaussian neuron (math, what I hope to achieve, toy problems for visualization), I'm going to explore the behavior over a more realistic dataset, MNIST.
 
+
+
 \section{Classic Network - MNIST Behavior}
+Ill emphasize that while I show results on one given network, the behaviors I point to appear every time i redo this experiment. \\
+It's not tied to this 64/64 architecture or this dropout value at all.\\
 
 \section{Classic Network - Fully Random Noise Behavior}
 
 \section{Classic Network - Shuffled Images Behavior}
 
 \section{Converted FGN Network - MNIST Behavior}
+Now what happens when I convert the network to the FGN architecture?\\
+sigma = 10 is pretty large considering that the data is normalized, and neuron activity in the hidden layers is restricted to -1+1 by tanh().\\
+You could use smaller values and it would still have 99 percent accuracy, it would just not be identical to the classic network. I think sigma lower than 1 was where performance would deteriorate. But the exact values dont matter much because they'll depend on the data. Just that it was easy to find a value that allowed the converted network to behave identical to the original classic network, over the train/val data.\\
+As shown by these two plots. 2859 is where the original network also didnt have over 0.9 percent confidence.
 
 \section{Classic vs Converted - MNIST and Random Behavior}
 
@@ -168,6 +229,35 @@ Now that I've given a theoretical overview of the finite gaussian neuron (math, 
 
 \section{Classic vs Retrained - MNIST and Random Behavior}
 
-\section{Checkpoint}
+\section{Classic vs FGN - EMNIST Letters}
 
+\section{Checkpoint}
+At this point I've shown that my FGN architecture is able to:\\
+make it easy to convert existing models to the FGN architecture\\
+while preserving the existing model's behavior on real data\\
+while giving hints that maybe it offers resistance.\\
+I should also point out that you don't HAVE to converted pre-trained models, you can start training from scratch and it will work fine, though there are computational advantages to converting.
+
+\section{Successful Attacks Comparison)}
+So does the FGN architecture actually help defend against FGSM adversarial attacks?\\
+Here I compare how 4 models do against FGSM, on MNIST validation set.\\
+First 3 models are the same as above: a classic feedforward net, an FGN net simply converted, the converted net retrained for 1 epoch with tiny lambda sigma (pressure to minimize sigmas), and finally a converted model retrained for longer with a larger lambda sigma. (same number of epochs as the original class feedforward net)\\
+All model have the same or almost the same accuracy.\\
+What I am looking for are successful attack: how often does the FSGM attack produce an adversarial example that both mis-classifies the input, AND for which the predicted class has a confidence over 0.5, that is a class has the majority of the confidence.\\
+The FGSM attack was done for multiple epislon step sizes, that is the total amount of distortion added to the original image. These are the X axis. The weird numbers are because they are increments of minimum pixel change, normalized.\\
+What we see is that FGN models are always more resistant to FGSM attacks than the classic net, and that if you're willing to train it longer, pretty much impervious to it.\\
+Looking closer, FGNs are only vulnerable for small epsilon steps size, a zone that inherently allows for fewer successful attacks.\\
+This suggests that if you model is vulnerable to attacks with small epsilon step size, youll need to retrain.
+
+\section{Successful Attacks Comparison (continued)}
+Looking closer, I plotted the histogram of the confidences of the models in the FGSM adversarial examples (successful at changing the class or not). \\
+For epsilon zero, this doesn't change the images so all 3 model have high confidence since they all behave close to the same on the real data.\\
+For the smallest epsilon, the classic and converted model still behave pretty much identical, but the longer trained already crashes to 0.1.\\
+This means that every single adversarial example image produced by FGSM, with the smallest step possible per pixel, is already outside the range of the finite gaussian neurons.\\
+Keep in mind that this model has high accuracy (just as high as classic) on the training and validation data, so it's not a case of overfitting to the training data. I find this  surprising, that a model is able to generalize somewhat (from train to val), while being so sensitive as to be able to detect the smallest adversarial attack (from FGSM).\\
+
+\section{Observation - FGSM Boundaries}
+\section{Observation - Space in between images}
+
+\section{Remaining Work}
 \end{document}
