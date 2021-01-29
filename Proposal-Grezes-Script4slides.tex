@@ -36,9 +36,8 @@ Secondly, unintuitive properties of high-dimensional spaces lead to unexpected b
 In particular distances become harder for humans to visualize. For example in the previous slide's figure, the two pictures of Stallone are indistinguishable by humans, but for a neural network they may a well be completely different images. The sum of all the tiny changes on the image, invisible to humans, lead to a large euclidean distance, and a large difference in neuron activation.\\
 But even on short euclidean distances behaviors can be surprising\\
 For example, again typically for a simple neural nets, every point in the input space is close to the border with other classes.\\
-This is harder to show but in figure 2 on the right, what I plotted is the neighborhood slices as you move from one image to another (linearly). Ill reexplain this plot later, but you can see here is that as I make slight changes from one picture to another, and look in an orthogonal direction, I see all kinds of other classes. The equivalent in on a 2D world map would be walking in a straight line from Paris to Berlin, and every time you take a single step left or right, you're in a different country that's not France or Germany. And this would be true for any pair of cities.\\
-Keep in mind that this is a model that has high accuracy on the real data, both train and validation set.\\
-
+This is harder to show but in figure 2 on the right, what I plotted is the neighborhood slices as you move from one image to another has(linearly). Ill reexplain this plot later, but you can see here is that as I make slight changes from one picture to another, and look in an orthogonal direction, I see all kinds of other classes. The equivalent in on a 2D world map would be walking in a straight line from Paris to Berlin, and every time you take a single step left or right, you're in a different country that's not France or Germany. And this would be true for any pair of cities.\\
+Keep in mind that this is a model that has high accuracy on the real data, both train and validation set.\
 So I would say the central motivation of my thesis, is the belief that if you can build a neural network model without these 2 issues (excessive confidence and weird border closeness), you would have a model resistant to adversarial attacks, and I chose to build such a model by dealing with the piece-wise linearity.
 
 \section{Related Work - FGSM }
@@ -72,7 +71,7 @@ Many similarities to my idea:\\
 Have a layer of neurons with limited range\\
  - natural defense against rubbish data and shown to have adversarial resistance\\
  - single layer, can it work on for more complex models or tasks? I know Goodfellow said he was unable to train RBFs.\\
- also have to place the centers/protoypes, which may require extra work (knn-clustering is often mentioned). That said my proposed architecture may require some of that too. 
+ also have to place the centers/prototypes, which may require extra work (knn-clustering is often mentioned). That said my proposed architecture may require some of that too. 
 
 \section{Related Work - Bayesian NN}
 
@@ -99,7 +98,8 @@ When you combine the gaussian component with the classic neuron activity, you ge
 \section{Bird's Eye View}
 So what am I hoping to accomplish by defining neurons this way?\\
 The main goal is to restrict the activity of a network built using these neurons to regions of the input hyperspace where data has been observed during training, while making no guess over regions never observed.\\
-Here is an example of that.
+Here is an example of that.\\
+If this works as intended, adversarial examples should be harder to find or not exist as all.
 
 \section{Matching Classic Neuron Behavior}
 The first point I'd like to make is that FGNs can perfectly mimic the behavior of classical neurons over any given data.\\

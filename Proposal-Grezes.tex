@@ -10,6 +10,8 @@
 \usepackage{url}
 \usepackage{epstopdf}
 \usepackage{enumitem}
+\usepackage{amsmath}
+
 
 %% ...
 %% any 'preamble' stuff
@@ -28,7 +30,17 @@
 \makeapprovalpage{1st Committee member}{2d Committee member}{3d Committee member}{4th Committee member}
 
 %% optional:
-\makeabstractpage{Pr. Michael I. Mandel}{Text of Abstract, up to 350 words}
+\makeabstractpage{Pr. Michael I. Mandel}{
+Since 2014, artificial neural networks have been known to vulnerable to adversarial attacks, which can imperceptibly alter inputs to fool the network into producing wrong or nonsensical outputs.\\
+While many defenses against adversarial attacks have been proposed, they usually involve retraining a new neural network from scratch, a costly task.\\
+In this work, I introduce the Finite Gaussian Neuron, a novel neuron architecture for artificial neural networks. \\
+My works aims to:
+\begin{itemize}
+    \item make it easy to convert existing models to the Finite Gaussian Neuron architecture,
+    \item while preserving the existing model's behavior on real data,
+    \item and offering resistance against adversarial attacks.
+\end{itemize}
+}
 
 %% (In addition to these last four custom CUNY commands, all LaTex
 %% commands, including those from the LaTeX 'book' class, are available.
@@ -36,7 +48,7 @@
 %% required by CUNY, while the main text will be double spaced.)
 
 %% optional:
-\chapter*{Acknowledgements}
+% \chapter*{Acknowledgements}
 %% Text of acknowledgements
 
 \tableofcontents
@@ -44,61 +56,148 @@
 \mainmatter
 
 \chapter{Introduction}
+% definitions? (will be introduced as needed)
+% brief history? nn->attacks exist (what are attacks)
 
-\chapter{Background}
-\section{Neural Networks}
-\subsection{Particulars of Neural Networks for Vision}
-\subsection{Particulars of Neural Networks for Audio}
-
-\section{Adversarial Attacks on Neural Networks}
-\subsection{Visual Adversarial Attacks}
-\subsection{Audio Adversarial Attacks}
-
-\section{Proposed Work}
-\subsection{Main Idea: Finite Gaussian Neuron Activity}
-%Intuition, Math, Advantages to other counter-measures
-A typical artificial neuron's output $y$ is defined by its inputs $x_i$ and associated weights $w_i$ as: 
-\[ y = \varphi(\sum_{i}w_i x_i) \]
-with $\varphi$ being the non-linear activation function required by the universal approximator theorem \cite{cybenko1989approximation, hornik1989multilayer}. Usually a bias term is included, but it can be written as an extra input with value 1. 
-
+\section{Motivation}
+There are two main intuitions that motivate the Finite Gaussian Neuron, both of which might explain why neural networks are susceptible to adversarial attack: the \emph{piece-wise linearity} of the artificial neurons and the \emph{curse of dimensionality}.\\
+Typically, artificial neural networks are built by combining artificial neurons into layers, and these neurons individually separate their input space into linear contours. The combination of these linear contours through stacked layers allow the network to output highly complex and non-linear contours, but a consequence of this linear combination of linear separators is that neural networks tend to have excessive confidence in their output in regions of space far from their training data, see figure \ref{fig:mot-pred-noise}.
+%formalize? for any direction (vector), if you go far enough in that direction, one neuron's activity will dominate the others for all points beyond on that vector
+% draw examples of proof?
 \begin{figure}[!htbp]
-\centering
-\includegraphics[width=0.9\textwidth]{images/artificial_neuron_model.png}
-\caption{Model of an Artificial Neuron}
-\label{fig:neuron}
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/Motivation/pred_noise.png}
+    \caption{A model trained to recognize MNIST digits often makes strong predictions over random noise. For each red square, this typical models softmax output gives over $0.5$ confidence in one of the ten digits, i.e. a majority of the confidence.}
+    \label{fig:mot-pred-noise}
+\end{figure}\\
+The curse of dimensionality refers to many unintuitive phenomena that arise when analyzing data in high-dimensional spaces. Notably, distances become hard for humans to visualize. \ref{fig:mot-dist} shows a simplistic example. Other commonly referenced unintuitive phenomena are that high-dimensional spheres have most of their volume concentrated near their surface, and that high-dimensional data sets become easier to linearly separate.
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/Motivation/motivation-distances.png}
+    \caption{Three distinct images that all have the same Euclidean distance from the image in the blue box. Human perception doesn't always align with mathematical definitions.}
+    \label{fig:mot-dist}
+\end{figure}\\
+The combination of the piece-wise linearity of neural networks with the various unintuitive curse of dimensionality phenomena lead to various unexpected behaviors of the networks. For example Szegedy et.al.\cite{szegedy2013intriguing} showed that the boundaries between the various classes in the hyper-space (as predicted by a neural network) are often linear and close distance-wise. \ref{fig:mot-bounds} shows an example of this behavior.
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/Motivation/boundaries.png}
+    \caption{What this simple MNIST model predicts when moving along an image-to-image vector. Each pixel represents point in the MNIST image 748 dimensional space, with centre-leftmost pixels and centre-rightmost pixels being two images pulled from the data. Left-right movement along the center corresponds to linear compositions of the two images. Each vertical axis corresponds to movement along a different random vector orthogonal to the left-right image-to-image vector. Each color corresponds to an MNIST class prediction. Surprisingly, while the two images are correctly classified as 8 and 3 respectively, orthogonal movement almost always ends leads to a different class. An analogy would be: walking in a straight line from Paris to Berlin predictably takes you from France to Germany, and might cross any number of other countries, but any step left or right of that straight line always lands outside of France or Germany. }
+    \label{fig:mot-bounds}
+\end{figure}\\
+These intuitions motivate the definition of the Finite Gaussian Neuron (in \ref{Definition of the Finite Gaussian Neuron}), as a combination of a classical neuron with a Gaussian of finite range. 
+
+
+\section{Related Work}
+% \subsection{Fast Gradient Sign Method}
+% \subsection{Adversarial Training}
+In the paper by Goodfellow et al.\cite{goodfellow2015explaining} introducing adversarial attacks, it is shown that continuous retraining of the model using adversarial examples protects the model from attacks. This adversarial training method however is computationally expensive as it requires both creating new adversarial examples after each training epoch and continuously retraining the model with a potentially growing dataset. It is also shown that adversarial training based on the Fast Gradient Sign Method (FGSM) of the paper does not necessarily protect against other adversarial attacks.\\
+Pushing adversarial training further, Madry et al.\cite{madry2019deep} show that the Project Gradient Descent (PGD) attack provides adversarial examples that may well generalize to other gradient based attacks. However this potential universal robustness again first-order attacks requires larger networks. In addition PGD, as an iterated FGSM attack, is especially computationally expensive.\\
+%\subsection{Distillation}
+Another proposed defense against adversarial attacks is Distillation, proposed by Papernot et al. \cite{Papernot2016DistillationAA}. Originally designed as a method to reduce the size of DNNs by transferring knowledge from larger to smaller networks. Distillation works by training a large network, then using the output prediction vectors as soft-labels to train a smaller network, encoding class similarities in the soft-labels. Instead of aiming to reduce model size, the authors show that retraining the same model on the soft-labels provides defense against adversarial attacks by making the network less sensitive to small changes over the input, and requiring a higher average minimum
+number of features to be modified in order to create adversarial examples. Similarly to adversarial retraining, distillation requires additional computation to generate the soft-labels and retrain the model.\\
+% \subsection{Radial Basis Function Networks}
+Radial Basis Function (RBF) networks have also been explored as a more intrinsic defense against rubbish data and adversarial attacks\cite{chenou2019radial,zadeh2018deeprbf} and in fact are similar in many ways to the Finite Gaussian Neuron networks. However they have not become as popular as other deep neural networks techniques, perhaps due to their complexity. The RBF architecture doesn't easily generalize to multiple layers, and requires pre-processing work to properly place the prototypes.
+
+
+\chapter{The Finite Gaussian Neuron and its Properties}
+A classical artificial neuron's activity $y_c$ is defined by: 
+\[ y_{c} = \varphi(\ell) \]
+\[ \ell = \sum_{i}w_i x_i\]
+with $\ell$ being the linear component defined by linear combination of the inputs $x_i$ and associated weights $w_i$, and with $\varphi$ being the non-linear activation function required by the universal approximator theorem \cite{cybenko1989approximation, hornik1989multilayer}. The bias term can be added explicitly or implicitly included as an extra input with value 1. \ref{fig:classic-neuron} gives a visualization of this classical neuron. 
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/artificial_neuron_model.png}
+    \caption{A classical representation of the artificial neuron.}
+    \label{fig:classic-neuron}
+\end{figure}\\
+
+\section{Definition of the FGN} \label{Definition of the Finite Gaussian Neuron}
+I introduce the Finite Gaussian Neuron (FGN) as a combination of the classical neuron's activity with a Gaussian activity that limits the range of the neuron. Explicitly, the FGNs output $y_f$ is given by:
+\[y_{f} = \varphi(\ell) * g\]
+\[g = e^{\frac{-1}{\sigma^2}\sum_{i}(x_i-c_i)^2}\]
+with $\ell$ and $\varphi$ the same as the classical neuron i.e. the linear component and non-linear activation function respectively; and with $g$ the new Gaussian component, defined by centers $c_i$ that position the neuron in the input hyperspace, and range $\sigma$ that gives the neuron a limited range. If inputs are far away from the center, relative to the range $\sigma$, then the Gaussian component $g$ will have value zero and the FGN's output activity will be zero as well, thus limiting the range of neurons to a finite zone of the input hyperspace. \ref{fig:gaussian-comp} shows a visualization of the new Gaussian component G.
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/fgn-gaussian-component.png}
+    \caption{The Gaussian component of an FGN.}
+    \label{fig:gaussian-comp}
+\end{figure}\\
+% visuals
+The following figures (\ref{fig:classic-heatmap}, \ref{fig:fgn-heatmap}) show the difference in behavior between the classic neuron architecture and the FGN architecture, for an arbitrary neuron, over a two dimensional input space.
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.49\textwidth]{images/2D Activity/2d-linear-activity-cropped.png}
+    \includegraphics[width=0.49\textwidth]{images/2D Activity/2d-classic-activity-cropped.png}
+    \caption{On the left, the $\ell = \sum_{i}w_i x_i$ linear component of the classical neuron architecture with arbitrary weights, shown as an activity heatmap over a 2-d input space. On the right the same neuron's output $y_c = \tanh(\ell)$  after the linear component is passed through the typical $tanh$ non-linear activation function. The black line shows where the heatmap value is zero.} 
+    \label{fig:classic-heatmap}
+\end{figure}\\
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.49\textwidth]{images/2D Activity/2d-gaussian-activity-cropped.png}
+    \includegraphics[width=0.49\textwidth]{images/2D Activity/2d-fgn-activity-cropped.png}
+    \caption{On the left, the $g = e^{\frac{-1}{\sigma^2}\sum_{i}(x_i-c_i)^2}$ Gaussian component of the FGN architecture with arbitrary centers and range, shown as an activity heatmap over a 2-d input space. The zero line is only for comparison with the in \ref{fig:classic-heatmap} linear component above. On the right, the FGN's output $y_f = \tanh(\ell) * g$ combining the output of the classical neuron with the Gaussian component. Note the finite range of the FGN's activity.}
+    \label{fig:fgn-heatmap}
+\end{figure}\\
+% desired behavior
+The desired outcome of defining the FGN in this way is to restrict the activity of the neural network to  regions of the input hyperspace where data has been observed during training, while making no guess over regions never observed. And, if this works as intended, adversarial examples will be harder to find.\\
+
+\section{Classic Neuron Conversion to FGN}
+One important property of the FGN is that existing models using the classical neuron architecture can be converted to the FGN architecture without changing the model's behavior over given data. This is done by converting each classical neuron in the original model to an FGN with identical weight vector $W$ and large range $\sigma$. Figure \ref{fig:matching} illustrates this property.
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.32\textwidth]{images/Matching-behavior/sigma-2-cropped.png}
+    \includegraphics[width=0.32\textwidth]{images/Matching-behavior/sigma-3-cropped.png}
+    \includegraphics[width=0.32\textwidth]{images/Matching-behavior/sigma-4-cropped.png}
+    \includegraphics[width=0.32\textwidth]{images/Matching-behavior/sigma-5-cropped.png}
+    \includegraphics[width=0.32\textwidth]{images/Matching-behavior/sigma-6-cropped.png}
+    \includegraphics[width=0.32\textwidth]{images/Matching-behavior/sigma-7-cropped.png}
+    \caption{Illustration showing that increasing an FGN's range $\sigma$ (smallest top-left, largest bottom-right) leads to behavior identical to that of classical neuron with the same weights $W$. Note how the final picture is indistinguishable that shown in figure \ref{fig:classic-heatmap}. }
+    \label{fig:matching}
+\end{figure}\\
+Converting a classical neuron to an FGN involves defining two new parameters, the range $\sigma$ and the centers $c_i$. For any given dataset, there will be a unique $C=c_i$ that allows for minimum valued range while not changing the behavior over this dataset, but finding this center is not trivial, and the topic of future research. Currently, conversion is done by setting the center $C$ to be the point on zero line (defined by the neuron weights $W$) closest to the origin, and empirically searching for a range $\sigma$ large enough.
+
+\section{Training the FGN}
+Training the FGN is done much the same way as the classical neuron: we find parameters of the FGN that locally minimize a cost function using using the back-propagation algorithm. So far, experiments have not shown any specific loss function (Mean-Squared Error, Cross-Entropy, etc...) or gradient descent optimizer algorithm (Adam, RMSprop, etc...) to perform any differently on FGNs versus classical neurons. \\
+Since one of the goals of the FGN is to limit the activity far from the data, we add a regularization term $\lambda$ to the loss function $\tilde{C}$ to add pressure to minimize the range $\sigma$ during training. $\lambda$ becomes a hyper-parameter of the neuron to tune to the task like any other hyper-parameter.\\
+\[C = \tilde{C} + \lambda\sigma^2\]
+The precise gradients depend on the cost $C$ and non-linear activation $\Phi$ functions chosen, but the partial derivatives of the FGN output $y$ for an input $x_i$  are:
+\begin{align*}
+    \text{Weights:\quad} \frac{\partial y}{\partial w_i} &=  x_i \varphi'(\ell) * g  \\[1em]
+    \text{Centers:\quad} \frac{\partial y}{\partial c_i} &= \varphi(\ell) * \frac{2(x_i-c_i)}{\sigma^2} * g \\[1em]
+    \text{Sigmas:\quad} \frac{\partial y}{\partial \sigma} &= \varphi(\ell) * \frac{2\sum_{i}(x_i-c_i)^2}{\sigma^3}* g
+    % \text{(Reminder:\quad} y &=  \varphi(\ell)*g = \tanh(\sum_i x_i w_i) * e^{\frac{-1}{\sigma^2}\sum_{i}(x_i-c_i)^2} )
+\end{align*}
+The changes to each of the parameters all depend in part on the Gaussian component $g$. In particular they all need it to be non-zero or they will not change. This shows that the FGN can only learn when the input is close to the neuron centers $c_i$ relative to the range $\sigma$. Proper initialization is thus important, to ensure that the FGN range and centers cover the data, else the gradients will be non-existent. \\
+
+As a sanity check, I verified that a single FGN is able to be trained to properly classify a two dimensional linearly separable toy dataset, show in figure \ref{fig:single-fgn-1}. The following figures \ref{fig:single-fgn-2}, \ref{fig:single-fgn-3} show the FGN's weights $W$, centers $c_i$ and range $\sigma$ adapting to fit the data.
+\begin{figure}[!htbp]
+    \centering
+    \hspace{0.0\textwidth}
+    \includegraphics[width=0.405\textwidth]{images/2D-single-neuron/2d-easy-data-cropped.png}
+    \hspace{0.04\textwidth}
+    \includegraphics[width=0.49\textwidth]{images/2D-single-neuron/2d-easy-trained-activity-cropped.png}
+    \caption{The 2D linearly separable toy data centered on $(1,1)$, and the activity of the FGN over the space after training with MSE cost function, $\lambda=0.01$ range $\sigma$ regularization term, Adam optimizer with $lr=0.05$.}
+    \label{fig:single-fgn-1}
 \end{figure}
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.49\textwidth ]{images/2D-single-neuron/2d-easy-initialg-cropped.png}
+    \includegraphics[width=0.49\textwidth]{images/2D-single-neuron/2d-easy-trainedg-cropped.png}
+    \caption{The FGN's Gaussian component $g$ activity over the 2D space pre and post training. Initially centered on the origin $(0,0)$ with range $\sigma=5$, after training the Gaussian component is centered on the data and the range has shrunk such that space far from the data has $g=0$ activity.}
+    \label{fig:single-fgn-2}
+\end{figure}\\
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.49\textwidth,height=6.35cm]{images/2D-single-neuron/2d-easy-sigma-training-cropped.png}
+    \includegraphics[width=0.49\textwidth]{images/2D-single-neuron/2d-easy-center-path-cropped.png}
+    \caption{Evolution of the FGN's range $\sigma$ and center position during training. On the left, pressured by the cost function's regularizer term, $\sigma$ shrink as much as possible while still fitting the data.  On the right, the dotted blue line shows the FGN center's path during training, starting from the red dot in $(0,0)$ and moving towards the theoretically optimal center $(1,1)$ (black dot). The black line is the class border and the yellow line is the FGN's predicted border, given by the weights $W$.}
+    \label{fig:single-fgn-3}
+\end{figure}\\
 
-The $x_i$ inputs times $w_i$ weights product defines an underlying linear activity gradient over the input space, which is theorized to be a reason adversarial attacks on neural networks are effective \cite{46153}. An visual example of the linear activity over a 2D input space is given by \ref{fig:linmap}.
+\chapter{Experimental Results: FGNs over MNIST}
 
-\begin{figure}[htb]
-\centering
-\includegraphics[width=0.9\textwidth]{images/2d_linear_map.png}
-\caption{Underlying Linear Activity Map for a 2D Neuron}
-\label{fig:linmap}
-\end{figure}
+\chapter{Remaining Work}
 
-To counter the locally linear decision boundaries of neural networks, I propose a modified neuron architecture, the Finite Gaussian Neuron (FGN). The output $y$ of a FGN is the $x_i$ inputs times $w_i$ weights product, multiplied by a circular Gaussian with learned mean and variance parameters:
-\[ y = (\sum_{i}w_i x_i)*e^{(-1/\sigma^2)*(\sum_{i}(x_i-c_i)^2)} \]
-% TODO draw fig:neuron but with gaussian side product
-with $\sigma$ the learned mean and $c_i$ the learned center per input dimension. An visual example of the localized activity over a 2D input space is given by \ref{fig:locmap}. \\
-Note that the circular Gaussian provides both the non-linearity and the bias term of classical artificial neurons. Both of which are needed for the universal approximator theorem for neural networks \cite{}.
-
-% Proof of above statement
-$\varphi (\cdot )$ needs to be a nonconstant, bounded, and continuous function.\\
-We can write the activity of a LGN as:
-\[ y = (\sum_{i}w_i x_i)*e^{(-1/\sigma^2)*(\sum_{i}(x_i-c_i)^2)}\]
-\[y = w_Tx * \]
-
-\begin{figure}[!htb]
-\centering
-\includegraphics[width=0.9\textwidth]{images/2d_localized_activity_map.png}
-\caption{Localized Activity Map for a Proposed 2D Neuron}
-\label{fig:locmap}
-\end{figure}
-
-\subsection{Task 1: Visual}
-% data, experiments, results
-\subsection{Task 2: Audio}
 
 
 %% If you want an introduction in the table of contents, but
