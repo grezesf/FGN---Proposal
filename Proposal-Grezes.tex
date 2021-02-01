@@ -11,6 +11,7 @@
 \usepackage{epstopdf}
 \usepackage{enumitem}
 \usepackage{amsmath}
+\usepackage{subcaption}
 
 
 %% ...
@@ -99,7 +100,7 @@ number of features to be modified in order to create adversarial examples. Simil
 Radial Basis Function (RBF) networks have also been explored as a more intrinsic defense against rubbish data and adversarial attacks\cite{chenou2019radial,zadeh2018deeprbf} and in fact are similar in many ways to the Finite Gaussian Neuron networks. However they have not become as popular as other deep neural networks techniques, perhaps due to their complexity. The RBF architecture doesn't easily generalize to multiple layers, and requires pre-processing work to properly place the prototypes.
 
 
-\chapter{The Finite Gaussian Neuron and its Properties}
+\chapter{The Finite Gaussian Neuron}
 A classical artificial neuron's activity $y_c$ is defined by: 
 \[ y_{c} = \varphi(\ell) \]
 \[ \ell = \sum_{i}w_i x_i\]
@@ -168,8 +169,7 @@ The precise gradients depend on the cost $C$ and non-linear activation $\Phi$ fu
     % \text{(Reminder:\quad} y &=  \varphi(\ell)*g = \tanh(\sum_i x_i w_i) * e^{\frac{-1}{\sigma^2}\sum_{i}(x_i-c_i)^2} )
 \end{align*}
 The changes to each of the parameters all depend in part on the Gaussian component $g$. In particular they all need it to be non-zero or they will not change. This shows that the FGN can only learn when the input is close to the neuron centers $c_i$ relative to the range $\sigma$. Proper initialization is thus important, to ensure that the FGN range and centers cover the data, else the gradients will be non-existent. \\
-
-As a sanity check, I verified that a single FGN is able to be trained to properly classify a two dimensional linearly separable toy dataset, show in figure \ref{fig:single-fgn-1}. The following figures \ref{fig:single-fgn-2}, \ref{fig:single-fgn-3} show the FGN's weights $W$, centers $c_i$ and range $\sigma$ adapting to fit the data.
+\indent As a sanity check, I verified that a single FGN is able to be trained to properly classify a two dimensional linearly separable toy dataset, show in figure \ref{fig:single-fgn-1}. The following figures \ref{fig:single-fgn-2}, \ref{fig:single-fgn-3} show the FGN's weights $W$, centers $c_i$ and range $\sigma$ adapting to fit the data.
 \begin{figure}[!htbp]
     \centering
     \hspace{0.0\textwidth}
@@ -192,7 +192,88 @@ As a sanity check, I verified that a single FGN is able to be trained to properl
     \includegraphics[width=0.49\textwidth]{images/2D-single-neuron/2d-easy-center-path-cropped.png}
     \caption{Evolution of the FGN's range $\sigma$ and center position during training. On the left, pressured by the cost function's regularizer term, $\sigma$ shrink as much as possible while still fitting the data.  On the right, the dotted blue line shows the FGN center's path during training, starting from the red dot in $(0,0)$ and moving towards the theoretically optimal center $(1,1)$ (black dot). The black line is the class border and the yellow line is the FGN's predicted border, given by the weights $W$.}
     \label{fig:single-fgn-3}
+\end{figure}
+
+\section{Alternative Implementations}
+There are several implementation alternatives that may improve the FGN's performance on specific tasks. 
+\indent An FGN built to match the behavior of a classical neuron will define the bias term of the linear component $\ell$ by the centers of the FGN, so that the line of zero activity for the linear component passes through the center. This isn't strictly needed when retraining the FGN or when training from scratch. Figure \ref{fig:decoupled} is an example of an FGN with decoupled bias and centers in two dimensional input space. All the experiments performed in later sections were done with decoupled bias and centers.
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.66\textwidth]{images/2D-Decoupled/var-decoupled-center-activity-cropped.png}
+    \caption{Activity of an FGN with a decoupled bias and centers.}
+    \label{fig:decoupled}
 \end{figure}\\
+\indent Since distances in higher dimensions are harder to grasp, various norms for the Gaussian component $g$ were considered over the Euclidean norm.
+\[g = e^{\frac{-1}{\sigma^2}\lVert x_i-c_i \lVert_p }\]
+Figure \ref{fig:norms} shows how changing the ordinal $p$ of the norm affects the FGN's output, visualized over a two dimensional input space. Cursory experiments have not shown any differences in FGN performance between the various $p$-norms, and the Euclidean norm was used.
+\begin{figure}[!htbp]
+    \centering
+    \begin{subfigure}[t]{0.32\textwidth}
+        \includegraphics[width=\textwidth]{images/Variants-Norms/ord0.5-cropped.png}
+        \caption*{$p=0.5$}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.32\textwidth}
+        \includegraphics[width=\textwidth]{images/Variants-Norms/ord1-cropped.png}
+        \caption*{$p=1.0$}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.32\textwidth}
+        \includegraphics[width=\textwidth]{images/Variants-Norms/ord3-cropped.png}
+        \caption*{$p=3.0$}
+    \end{subfigure}
+    \caption{Examples of how the $p$-norm of the FGN's Gaussian component affects activity.}
+    \label{fig:norms}
+\end{figure}\\
+\indent The range term $\sigma$, which defines how large or small the (hyper-)sphere of activity is for the Gaussian component $g$, can be modified into a matrix $\Sigma$ to stretch and/or rotate the sphere into an ellipse, which gives the FGN a different range along each of its inputs.\\
+The Gaussian component $g$ then becomes
+\[g = e^{-(X-C)^T * \Sigma^{-1} * (X-C)}\]
+with $X=[x_i]$ the inputs vector, $C=[c_i]$ the centers vector and $\Sigma$ the range covariance matrix (semi-definite positive). Figure \ref{fig:covars} gives examples of such $\Sigma$ matrices. Note that a full $\Sigma$ matrix has $N^2=$ elements, with $N$ being the number of inputs to the FGN, making the computation of $g$ intractable for any larger problem. A diagonal $\Sigma$ matrix is feasible.
+\begin{figure}[!htbp]
+    \centering
+    \begin{subfigure}[t]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{images/Variants-Diag-Full-Cov/diag_full_activity_cropped.png}
+        \caption*{Diagonal $\Sigma$}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{images/Variants-Diag-Full-Cov/full_full_activity_cropped.png}
+        \caption*{Full $\Sigma$}
+    \end{subfigure}
+    \caption{Examples of how using a range $\Sigma$ matrix allows the FGN to consider changes along one input dimension to be important than another.}
+    \label{fig:covars}
+\end{figure}
+
+\section{Multi-Layer FGN Networks}
+Extending the FGN architecture to neural networks is straightforward save for one detail: the Gaussian component $g$ needs to consider the Gaussian components of the previous layer to be able to propagate out-of-range activities. A layer $j$ FGN's output $y$ is given by
+\[y =  \varphi(\ell)*g = \varphi(\sum_i x_{i} w_{i}) * g\]
+\[g = \max(G_{j-1}) * e^{\frac{-1}{\sigma^2}\sum_{i}(x_i-c_i)^2}\]
+With $x_{i}$ and $G_{j-1}$ the previous layer outputs and Gaussian components. For the initial layer, $\max(G_{j-1})$ should be set to $1$. Figure \ref{fig:fgn-layer} illustrates this process.
+\begin{figure}[!htbp]
+    \centering
+        \includegraphics[width=\textwidth]{images/multi-layer-fgn/FGN-Network.png}
+    \caption{Illustration of an FGN's output computation when integrated in a neural network. The added Gaussian gate allows for zero activity due to out-of-range inputs to propagate throughout the network. Both $y$ ang $g$ are outputed to the next layer.}
+    \label{fig:fgn-layer}
+\end{figure}\\
+% toy 2D data
+To illustrate the difference in behavior between a neural network built form classical neuron compared to a network built from FGNs, consider the two class, two dimensional, non-linearly separable toy dataset in figure \ref{fig:toy-2d-data}. After training two feedforward neural networks, one with FGNs and the other with classical neurons but otherwise identical, figure \ref{fig:toy-2d-activities} shows that, while both networks are able to properly separate the two classes, the FGN network restricts its predictions to zones of the space where the data is present, while the classical network does not. 
+\begin{figure}[!htbp]
+    \centering
+        \includegraphics[width=0.66\textwidth]{images/2D-network-toy/2d-toy-data.png}
+    \caption{Two class, two dimensional, non-linearly separable toy dataset}
+    \label{fig:toy-2d-data}
+\end{figure}\\
+\begin{figure}[!htbp]
+    \centering
+    \begin{subfigure}[t]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{images/2D-network-toy/classic-heatmap.png}
+        % \caption*{}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{images/2D-network-toy/fgn-heatmap.png}
+        % \caption*{}
+    \end{subfigure}
+    \caption{Comparison of the activity heatmap between a classical neural network and the same network except using FGNs instead of classical neurons. Both networks separate the data shown in figure \ref{fig:toy-2d-data}, but only the classical network makes predictions far from the data.}
+    \label{fig:toy-2d-activities}
+\end{figure}\\
+
 
 \chapter{Experimental Results: FGNs over MNIST}
 
