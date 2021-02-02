@@ -846,7 +846,7 @@ My works aims to:
     
 \end{frame}
 
-\begin{frame}{Classic vs FGN - EMNIST Letters}
+\begin{frame}{Classic vs FGN - EMNIST Letters \cite{cohen2017emnist}}
  \vspace{-3mm}
     \begin{columns}
     \begin{column}{.33\textwidth}
@@ -864,7 +864,7 @@ My works aims to:
     \begin{column}{.33\textwidth}
     \begin{figure}
         \includegraphics[width=.85\textwidth]{images/Letters/hist-retrained-letters.png}\\
-        \centering \tiny{0\% of confidences $>$0.5}
+        \centering \tiny{0.0\% of confidences $>$0.5}
     \end{figure}
     \end{column}
     \end{columns}
@@ -1049,6 +1049,7 @@ My works aims to:
 
     % TODO: add calibration eval
     % centers separation regularization term
+    % TODO: RE-eval on random noise because of bug on random dataloader 
     \end{itemize}
     
     \end{block}

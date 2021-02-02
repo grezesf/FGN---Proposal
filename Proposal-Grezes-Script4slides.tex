@@ -221,7 +221,7 @@ It's not tied to this 64/64 architecture or this dropout value at all.\\
 Now what happens when I convert the network to the FGN architecture?\\
 sigma = 10 is pretty large considering that the data is normalized, and neuron activity in the hidden layers is restricted to -1+1 by tanh().\\
 You could use smaller values and it would still have 99 percent accuracy, it would just not be identical to the classic network. I think sigma lower than 1 was where performance would deteriorate. But the exact values dont matter much because they'll depend on the data. Just that it was easy to find a value that allowed the converted network to behave identical to the original classic network, over the train/val data.\\
-As shown by these two plots. 2859 is where the original network also didnt have over 0.9 percent confidence.
+As shown by these two plots. 2859 samples  original network also didnt have over 0.9 percent confidence.
 
 \section{Classic vs Converted - MNIST and Random Behavior}
 

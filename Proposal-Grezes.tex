@@ -34,8 +34,7 @@
 \makeabstractpage{Pr. Michael I. Mandel}{
 Since 2014, artificial neural networks have been known to vulnerable to adversarial attacks, which can imperceptibly alter inputs to fool the network into producing wrong or nonsensical outputs.\\
 While many defenses against adversarial attacks have been proposed, they usually involve retraining a new neural network from scratch, a costly task.\\
-In this work, I introduce the Finite Gaussian Neuron, a novel neuron architecture for artificial neural networks. \\
-My works aims to:
+In this work, I introduce the Finite Gaussian Neuron, a novel neuron architecture for artificial neural networks. My works aims to:
 \begin{itemize}
     \item make it easy to convert existing models to the Finite Gaussian Neuron architecture,
     \item while preserving the existing model's behavior on real data,
@@ -143,7 +142,7 @@ The following figures (\ref{fig:classic-heatmap}, \ref{fig:fgn-heatmap}) show th
 The desired outcome of defining the FGN in this way is to restrict the activity of the neural network to  regions of the input hyperspace where data has been observed during training, while making no guess over regions never observed. And, if this works as intended, adversarial examples will be harder to find.\\
 
 \section{Classic Neuron Conversion to FGN}
-One important property of the FGN is that existing models using the classical neuron architecture can be converted to the FGN architecture without changing the model's behavior over given data. This is done by converting each classical neuron in the original model to an FGN with identical weight vector $W$ and large range $\sigma$. Figure \ref{fig:matching} illustrates this property.
+One important property of the FGN is that existing networks using the classical neuron architecture can be converted to the FGN architecture without changing the network's behavior over given data. This is done by converting each classical neuron in the original network to an FGN with identical weight vector $W$ and large range $\sigma$. Figure \ref{fig:matching} illustrates this property.
 \begin{figure}[!htbp]
     \centering
     \includegraphics[width=0.32\textwidth]{images/Matching-behavior/sigma-2-cropped.png}
@@ -242,7 +241,7 @@ with $X=[x_i]$ the inputs vector, $C=[c_i]$ the centers vector and $\Sigma$ the 
 \end{figure}
 
 \section{Multi-Layer FGN Networks}
-Extending the FGN architecture to neural networks is straightforward save for one detail: the Gaussian component $g$ needs to consider the Gaussian components of the previous layer to be able to propagate out-of-range activities. A layer $j$ FGN's output $y$ is given by
+Extending the FGN architecture to neural networks is straightforward save for one detail: the Gaussian component $g$ needs to consider the Gaussian components of the previous layer to be able to propagate out-of-range activities. Without this Gaussian gate, activity far from the data defaults to an arbitrary value, not necessarily to zero as desired. A layer $j$ FGN's output $y$ is given by
 \[y =  \varphi(\ell)*g = \varphi(\sum_i x_{i} w_{i}) * g\]
 \[g = \max(G_{j-1}) * e^{\frac{-1}{\sigma^2}\sum_{i}(x_i-c_i)^2}\]
 With $x_{i}$ and $G_{j-1}$ the previous layer outputs and Gaussian components. For the initial layer, $\max(G_{j-1})$ should be set to $1$. Figure \ref{fig:fgn-layer} illustrates this process.
@@ -253,13 +252,14 @@ With $x_{i}$ and $G_{j-1}$ the previous layer outputs and Gaussian components. F
     \label{fig:fgn-layer}
 \end{figure}\\
 % toy 2D data
-To illustrate the difference in behavior between a neural network built form classical neuron compared to a network built from FGNs, consider the two class, two dimensional, non-linearly separable toy dataset in figure \ref{fig:toy-2d-data}. After training two feedforward neural networks, one with FGNs and the other with classical neurons but otherwise identical, figure \ref{fig:toy-2d-activities} shows that, while both networks are able to properly separate the two classes, the FGN network restricts its predictions to zones of the space where the data is present, while the classical network does not. 
+\indent To illustrate the difference in behavior between a neural network built form classical neuron compared to a network built from FGNs, consider the two class, two dimensional, non-linearly separable toy dataset in figure \ref{fig:toy-2d-data}. After training two feedforward neural networks, one with FGNs and the other with classical neurons but otherwise identical, figure \ref{fig:toy-2d-activities} shows that, while both networks are able to properly separate the two classes, the FGN network restricts its predictions to zones of the space where the data is present, while the classical network does not. Figure \ref{fig:toy-2d-params} gives additional details on the experiment.
+
 \begin{figure}[!htbp]
     \centering
         \includegraphics[width=0.66\textwidth]{images/2D-network-toy/2d-toy-data.png}
     \caption{Two class, two dimensional, non-linearly separable toy dataset}
     \label{fig:toy-2d-data}
-\end{figure}\\
+\end{figure}
 \begin{figure}[!htbp]
     \centering
     \begin{subfigure}[t]{0.49\textwidth}
@@ -272,10 +272,153 @@ To illustrate the difference in behavior between a neural network built form cla
     \end{subfigure}
     \caption{Comparison of the activity heatmap between a classical neural network and the same network except using FGNs instead of classical neurons. Both networks separate the data shown in figure \ref{fig:toy-2d-data}, but only the classical network makes predictions far from the data.}
     \label{fig:toy-2d-activities}
-\end{figure}\\
-
-
+\end{figure}
+\begin{figure}[!htbp]
+    \centering
+    \begin{subfigure}[t]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{images/2D-network-toy/training-accuracy.png}
+        \caption*{Classic vs FGN training accuracies}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{images/2D-network-toy/sigmas-change.png}
+        \caption*{Changes to the network's FGNs ranges}
+    \end{subfigure}
+    \caption{Network parameters: 32-16 neurons in hidden layers, dropout layers with 1/16 drop rate, spherical range $\sigma$ and 2-norm for the FGN. First FGN layer centers initialized to random data points.}
+    \label{fig:toy-2d-params}
+\end{figure}
+ 
 \chapter{Experimental Results: FGNs over MNIST}
+With the behavior of FGNs verified on toy data, we now test it on real data, with the goal of providing defense against adversarial attacks. The first dataset tested is MNIST, a collection of handwritten digit images by LeCun et al. \cite{lecun-mnisthandwrittendigit-2010}. Three networks will be compared:
+\begin{itemize}
+    \item A network built with two layers of 64 classical each, with dropout layers with drop rate 0.2 in between each layer.
+    \item A network built from FGNs directly converted from the classic network above, with no retraining, and with a range $\sigma=10$ large enough to not modify the behavior over the training data.
+    \item The same FGN network as above, but retrained over the data for a single epoch with a tiny $\lambda=10^{-10}$ loss pressure to shrink the ranges $\sigma$.
+\end{itemize}
+All three networks have over 99\% accuracy over the training data and over 97\% over the validation data. The specific network design choices (size and number of layers) are not relevant to the conclusions drawn, as other designs were tested with similar experimental results. The three networks will be tested over two sets of random images: one built from images with fully randomized pixel values, which have different mean and variance compared MNIST; and the other built from images consisting of shuffled MNIST images, which preserve the mean and variance. Figure \ref{fig:randoms} shows image samples from these two sets.
+\begin{figure}[!htbp]
+    \centering
+    \begin{subfigure}[t]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{images/mnist-behavior/MNIST-Sample-random-noise-fixed.png}
+        \caption*{Fully random pixels}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{images/mnist-behavior/MNIST-Sample-random-shuffled-noise-fixed.png}
+        \caption*{Shuffled MNIST image}
+    \end{subfigure}
+    \caption{Samples from the two random images datasets.}
+    \label{fig:randoms}
+\end{figure}
+
+\section{Behavior of Random Images}
+While the classical network has a high accuracy, it also has a high confidence in it's predictions. Over the validation set, over 99\% of its predictions gave one of the ten digit classes a confidence greater that $0.5$ i.e. a majority confidence over all the other classes. In fact most of the predictions are well into the [$0.9,1.0$] confidence range, as shown by figure \ref{fig:classic-mnist}.
+\begin{figure}[!htbp]
+    \centering
+    \begin{subfigure}[t]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{images/mnist-behavior/classic-hist-val.png}
+        % \caption*{}
+    \end{subfigure}
+    \caption{Histogram of confidences - classic network.}
+    \label{fig:classic-mnist}
+\end{figure}\\
+\indent When the same network is tested over the randomized images sets, the histograms of confidences  \ref{fig:classic-hists} show that a majority of predictions still have above $0.5$ confidence, even though the randomized images are far away in the high dimensional hyper-space from the MNIST images. Figure \ref{fig:classic-preds} shows examples of randomized images, highlighting those given an MNIST digit class with over 0.9 confidence. This is replication of results given in \cite{szegedy2013intriguing}.
+\begin{figure}[!htbp]
+    \centering
+    \begin{subfigure}[t]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{images/mnist-behavior/classic-hist-random.png}
+        \caption*{Over 66\% of confidences $>0.5$}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{images/mnist-behavior/classic-hist-shuffled.png}
+        \caption*{Over 78\% of confidences $>0.5$}
+    \end{subfigure}
+    \caption{}
+    \label{fig:classic-hists}
+\end{figure}
+\begin{figure}[!htbp]
+    \centering
+    \begin{subfigure}[t]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{images/mnist-behavior/classic-pred-random.png}
+        % \caption*{}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{images/mnist-behavior/classic-pred-shuffled.png}
+        % \caption*{}
+    \end{subfigure}
+    \caption{Sample over-confident predictions made by the classic network.}
+    \label{fig:classic-preds}
+\end{figure}\\
+\indent Be design the converted FGN network does not modify the behavior of the classic network over the MNIST training data. It outputs identical values and the histogram of its prediction confidences over the validation data looks identical to that of classic network shown in figure \ref{fig:classic-mnist}. By contrast, when the converted FGN network is tested over the randomized images sets, the histograms are shifted towards lower values, with fewer confident predictions. These histograms are shown in figure \ref{fig:converted-hist}.
+\begin{figure}[!htbp]
+    \centering
+    \begin{subfigure}[t]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{images/mnist-behavior/converted-hist-random.png}
+        \caption*{Over 47\% of confidences $>0.5$}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{images/mnist-behavior/converted-hist-shuffled.png}
+        \caption*{Over 45\% of confidences $>0.5$}
+    \end{subfigure}
+    \caption{}
+    \label{fig:converted-hist}
+\end{figure}\\
+\indent Finally, the FGN network is retrained over MNIST for a \emph{single} epoch. The pressure to shrink the ranges $\sigma$ of the network's FNGs, added to the loss function, was a tiny $\lambda=10e^{-10}$. The overall accuracy remains the same (99\% over training data and 97\% over validation data) and still the network outputs extremely confident predictions. The figure \ref{fig:retrained-mnist} is functionally identical to \ref{fig:classic-mnist}. But when this network is tested over the randomized image sets, almost all the predictions are at 0.1, as shown in figure \ref{fig:ret-hist}, meaning the network is actually all zeros, and making no prediction for these randomized images that are far away in the high dimensional hyper-space from the MNIST images. The retrained FGN network is restricting its activity exclusively to zones of the hyper-space in which the training data is present. These zones are still large enough to generalize from the training data to the validation data.
+\begin{figure}[!htbp]
+    \centering
+    \begin{subfigure}[t]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{images/mnist-behavior/retrained-hist-val.png}
+        % \caption*{}
+    \end{subfigure}
+    \caption{Histogram of confidences - retrained FGN network.}
+    \label{fig:retrained-mnist}
+\end{figure}
+\begin{figure}[!htbp]
+    \centering
+    \begin{subfigure}[t]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{images/mnist-behavior/retrained-hist-random.png}
+        \caption*{0.0\% of of confidences $>0.5$}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{images/mnist-behavior/retrained-hist-shuffled-fixed.png}
+        \caption*{0.05\% of confidences $>0.5$}
+    \end{subfigure}
+    \caption{}
+    \label{fig:ret-hist}
+\end{figure}\\
+\indent Finally the three networks are tested on the EMNIST dataset, a collection of handwritten letter images by Cohen et al. \cite{cohen2017emnist}, a verification of the FGN behavior to out-of-domain samples. The histograms of the prediction confidences are shown in figure \ref{fig:hist-letters} and tell the same story as above: the classic models makes many confident predictions, the converted FGN network makes fewer, and the retrained FGN network makes none. Samples images are shown in figure \ref{fig:pred-letters}.
+\begin{figure}[!htbp]
+    \centering
+    \begin{subfigure}[t]{0.32\textwidth}
+        \includegraphics[width=\textwidth]{images/Letters/hist-classic-letters.png}
+        \caption*{73\%  of confidences $>0.5$}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.32\textwidth}
+        \includegraphics[width=\textwidth]{images/Letters/hist-converted-letters.png}
+        \caption*{42\% of confidences $>0.5$}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.32\textwidth}
+        \includegraphics[width=\textwidth]{images/Letters/hist-retrained-letters.png}
+        \caption*{0.0\% of confidences $>0.5$}
+    \end{subfigure}
+    \caption{}
+    \label{fig:hist-letters}
+\end{figure}
+\begin{figure}[!htbp]
+    \centering
+    \begin{subfigure}[t]{0.32\textwidth}
+        \includegraphics[width=\textwidth]{images/Letters/classic-letters.png}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.32\textwidth}
+        \includegraphics[width=\textwidth]{images/Letters/converted-letters.png}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.32\textwidth}
+        \includegraphics[width=\textwidth]{images/Letters/retrained-letters.png}
+    \end{subfigure}
+    \caption{Sample EMNIST images with their prediction confidences given by the different networks. Note that some of the confident predictions by the classic network are on images of letters that resemble digits, yet it misses other. Humans would classify all the letter Os as digit zero. By contrast the retrained FGN networks makes no confident predictions for any of the letters, regardless of how close they resemble digits to humans.}
+    \label{fig:pred-letters}
+\end{figure}
+
+\section{Protection against FGSM attack}
+While protection from out-of-domain predictions is a useful feature of FGN networks, it does not guarantee protection from adversarial attacks. 
 
 \chapter{Remaining Work}
 
