@@ -224,7 +224,7 @@ My works aims to:
     \end{block}
     % classic neuron illustrated
     \begin{center}
-        \includegraphics[width=0.6\textwidth]{images/artificial_neuron_model.png}
+        \includegraphics[width=0.5\textwidth]{images/classic-neuron.png}
     \end{center}
 \end{frame}
 
@@ -286,7 +286,7 @@ My works aims to:
 
 \begin{frame}{Matching Classical Neuron Behavior}
     \begin{block}{Property}
-    As the neuron range $\sigma$ increases, the Finite Gaussian Neuron's behavior gets closer that of the classical neuron with the same $W$ weights.
+    As the neuron variance $\sigma$ increases, the Finite Gaussian Neuron's behavior gets closer that of the classical neuron with the same $W$ weights.
     \end{block}
     \vspace{0.2cm}
     \begin{tikzpicture}
@@ -300,11 +300,11 @@ My works aims to:
     \end{tikzpicture}
 \end{frame}
 
-\begin{frame}{Conversion - Initialization of Centers and Range}
+\begin{frame}{Conversion - Initialization of Centers and Variance}
     \begin{block}{Research in Progress}
-    Converting a classical neuron to an FGN involves two free parameters: centers $c_i$ and range $\sigma$.\\
+    Converting a classical neuron to an FGN involves two free parameters: centers $c_i$ and variance $\sigma$.\\
     $\bullet$ Initialize the centers to be the point on the zero line closest to the origin.\\
-    $\bullet$ Initialize the range large enough to not change network behavior.
+    $\bullet$ Initialize the variance large enough to not change network behavior.
     \end{block}
     
     \begin{columns}
@@ -327,8 +327,8 @@ My works aims to:
 \begin{frame}{Training the FGN}
     % talk about adapting SGD to the FGN math
     % adapt the loss function
-    \begin{block}{Cost Function - Sigma Regularization}
-    $$ C = \tilde{C} + \lambda\sigma^2  $$
+    \begin{block}{Loss Function - Sigma Regularization}
+    $$ \mathcal{L}  = \tilde{\mathcal{L} } + \lambda\sigma^2  $$
     \end{block}
     
     \begin{block}{Gradients for Backpropagation}

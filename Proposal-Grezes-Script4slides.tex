@@ -244,7 +244,7 @@ Here I compare how 4 models do against FGSM, on MNIST validation set.\\
 First 3 models are the same as above: a classic feedforward net, an FGN net simply converted, the converted net retrained for 1 epoch with tiny lambda sigma (pressure to minimize sigmas), and finally a converted model retrained for longer with a larger lambda sigma. (same number of epochs as the original class feedforward net)\\
 All model have the same or almost the same accuracy.\\
 What I am looking for are successful attack: how often does the FSGM attack produce an adversarial example that both mis-classifies the input, AND for which the predicted class has a confidence over 0.5, that is a class has the majority of the confidence.\\
-The FGSM attack was done for multiple epislon step sizes, that is the total amount of distortion added to the original image. These are the X axis. The weird numbers are because they are increments of minimum pixel change, normalized.\\
+The FGSM attack was done for multiple epsilon step sizes, that is the total amount of distortion added to the original image. These are the X axis. The weird numbers are because they are increments of minimum pixel change, normalized.\\
 What we see is that FGN models are always more resistant to FGSM attacks than the classic net, and that if you're willing to train it longer, pretty much impervious to it.\\
 Looking closer, FGNs are only vulnerable for small epsilon steps size, a zone that inherently allows for fewer successful attacks.\\
 This suggests that if you model is vulnerable to attacks with small epsilon step size, youll need to retrain.
