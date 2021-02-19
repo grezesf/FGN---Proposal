@@ -43,6 +43,7 @@ My works aims to:
     \item while preserving the existing model's behavior on real data,
     \item and offering resistance against adversarial attacks.
 \end{itemize}
+
 \newpage % add space between this and footnote
 
 I show that converted and retrained Finite Gaussian neural networks always have lower confidence in their predictions over randomized and FGSM adversarial images when compared to classical neural networks, while maintaining high accuracy and confidence over real MNIST images.
@@ -251,7 +252,9 @@ An FGN built to match the behavior of a classical neuron will define the bias te
 \end{figure}
 
 Since distances in higher dimensions are harder to grasp, various norms for the Gaussian component $g$ were considered over the Euclidean norm.
-\[g = e^{\frac{-1}{\sigma^2}\lVert x_i-c_i \lVert_p }\]
+\begin{align}
+    g = e^{\frac{-1}{\sigma^2}\lVert x_i-c_i \lVert_p }
+\end{align}
 Figure \ref{fig:norms} shows how changing the ordinal $p$ of the norm affects the FGN's output, visualized over a two dimensional input space. Cursory experiments have not shown any differences in FGN performance between the various $p$-norms, and the Euclidean norm was used.
 \begin{figure}[!t]
     \centering
@@ -274,7 +277,9 @@ Figure \ref{fig:norms} shows how changing the ordinal $p$ of the norm affects th
 The variance term $\sigma$, which defines how large or small the hyper-sphere of activity is for the Gaussian component $g$, can be modified into a matrix $\Sigma$ to stretch and/or rotate the sphere into an ellipse, which gives the FGN a different variance along each of its inputs.
 
 The Gaussian component $g$ then becomes
-\[g = e^{-(X-C)^T * \Sigma^{-1} * (X-C)}\]
+\begin{align}
+    g = e^{-(X-C)^T * \Sigma^{-1} * (X-C)}
+\end{align}
 with $X=[x_i]$ the inputs vector, $C=[c_i]$ the centers vector and $\Sigma$ the covariance matrix (semi-definite positive). Figure \ref{fig:covars} gives examples of such $\Sigma$ matrices. Note that a full $\Sigma$ matrix has $N^2=$ elements, with $N$ being the number of inputs to the FGN, making the computation of $g$ intractable for any larger problem. A diagonal $\Sigma$ matrix is feasible.
 \begin{figure}[!t]
     \centering
@@ -292,8 +297,10 @@ with $X=[x_i]$ the inputs vector, $C=[c_i]$ the centers vector and $\Sigma$ the 
 
 \section{Multi-Layer FGN Networks}
 Extending the FGN architecture to neural networks is straightforward save for one detail: the Gaussian component $g$ of an FGN needs to consider the Gaussian components of its input from the previous layer to be able to propagate out-of-range activities. Without this Gaussian gate, activity far from the data defaults to an arbitrary value, not necessarily to zero as desired. A layer $j$ FGN's output $y$ is given by
-\[y =  \varphi(\ell)*g = \varphi(\sum_i x_{i} w_{i}) * g\]
-\[g = \max(G_{j-1}) * e^{\frac{-1}{\sigma^2}\sum_{i}(x_i-c_i)^2}\]
+\begin{align}
+    y =  \varphi(\ell)*g = \varphi(\sum_i x_{i} w_{i}) * g\\
+    g = \max(G_{j-1}) * e^{\frac{-1}{\sigma^2}\sum_{i}(x_i-c_i)^2}
+\end{align}
 With $x_{i}$ and $G_{j-1}$ the previous layer outputs and Gaussian components. For the initial layer, $\max(G_{j-1})$ should be set to $1$. Figure \ref{fig:fgn-layer} illustrates this process.
 \begin{figure}[!t]
     \centering
@@ -472,7 +479,7 @@ Finally the three networks are tested on the EMNIST dataset, a collection of han
 \newpage %explicit page break
 
 \section{Protection against FGSM attack}
-While protection from out-of-domain predictions is a useful feature of FGN networks, it does not guarantee protection from adversarial attacks. To verify this, the networks were tested against the untargeted FGSM attack first introduced by Goodfellow 2014\cite{goodfellow2015explaining}, which generates adversarial examples by taking a single fixed-size step in the direction of the gradient of the loss with regards to the input image. An attack is considered successful if it both changes the class of the prediction outputted by the network for this input, and the confidence of the class is over 0.5. A parameter of the FGSM attack is $\epsilon$ the size of the fixed-length step, which also corresponds to the maximum amount of distortion allowed to the original image. Larger $\epsilon$ lead to a larger number of successful attacks but make the added adversarial noise more noticeable. The smallest step $\epsilon$ tested is equal to the smallest change possible to an 8-bit pixel. In addition to the three networks previously described in Chapter \ref{Experimental Results: FGNs over MNIST} (the classical network, the converted FGN network and the retrained FGN network), a fourth network is tested against FGSM. This network is built from the converted FGN network and is retrained for 100 epochs, the same number of epochs used to train the classical network, and with a much larger pressure $\lambda=10^{-5}$ to shrink the variances $\sigma$ of the FNGs added to the loss. This long-retrained FGN network maintains a 99\%/97\% accuracy during training/validation, with a high confidence in its predictions over MNIST.
+While protection from out-of-domain predictions is a useful feature of FGN networks, it does not guarantee protection from adversarial attacks. To verify this, the networks were tested against the untargeted FGSM attack first introduced by Goodfellow 2014 \cite{goodfellow2015explaining}, which generates adversarial examples by taking a single fixed-size step in the direction of the gradient of the loss with regards to the input image. An attack is considered successful if it both changes the class of the prediction outputted by the network for this input, and the confidence of the class is over 0.5. A parameter of the FGSM attack is $\epsilon$ the size of the fixed-length step, which also corresponds to the maximum amount of distortion allowed to the original image. Larger $\epsilon$ lead to a larger number of successful attacks but make the added adversarial noise more noticeable. The smallest step $\epsilon$ tested is equal to the smallest change possible to an 8-bit pixel. In addition to the three networks previously described in Chapter \ref{Experimental Results: FGNs over MNIST} (the classical network, the converted FGN network and the retrained FGN network), a fourth network is tested against FGSM. This network is built from the converted FGN network and is retrained for 100 epochs, the same number of epochs used to train the classical network, and with a much larger pressure $\lambda=10^{-5}$ to shrink the variances $\sigma$ of the FNGs added to the loss. This long-retrained FGN network maintains a 99\%/97\% accuracy during training/validation, with a high confidence in its predictions over MNIST.
 
 The FGSM attack was run over the 10,000 images from the MNIST validation set. The results are shown in figure \ref{fig:fgsm-counts} and show that FGN networks are more resistant to the FGSM adversarial attack than the classic network. The long-retrained FGN network appears to be impervious the FGSM attack even for small $\epsilon$, while the classical network remains vulnerable to attacks not matter the $\epsilon$ value. For both the converted and the quick-retrained FGN networks, smaller $\epsilon$ values still allow for a comparable number of successful attacks as the classical network, but past a certain $\epsilon$ value are no longer vulnerable to the FGSM attack. Taking a closer look, all the outputs of the FGN networks on the adversarial images in the cases with no successful attacks are zeros, indicating that these adversarial images are falling outside of the range of the network FGNs. Figure \ref{fig:fgsm-compar} shows the evolution of the confidence in the adversarial predictions as $\epsilon$ increases.
 \begin{figure}[!t]
