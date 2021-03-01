@@ -446,7 +446,7 @@ My works aims to:
 
 \begin{frame}{Multi-Layer Finite Gaussian Neural Networks}
    \begin{block}{Layer $j$ Neuron Outputs}
-        $$ y =  \varphi(\ell)*g = \varphi(\sum_i x_{i} w_{i}) * g $$\\[-0.2em]
+        $$ y =  \varphi(\ell)*g = \varphi\Big(\sum_i x_{i} w_{i}\Big) * g $$\\[-0.2em]
         $$ g = \max(G_{j-1}) * e^{\frac{-1}{\sigma^2}\sum_{i}(x_i-c_i)^2}$$
         With $x_{i}$ and $G_{j-1}$ the previous layer outputs and Gaussian components.
     \end{block}
@@ -596,26 +596,26 @@ My works aims to:
     \end{block}
     \begin{block}{Random Images Dataset}
     $\bullet$ Fully random pixels (changes mean/variance)\\
-    $\bullet$ Shuffled dataset images (preserves mean/variance)\\ 
+    $\bullet$ Shuffled dataset images (preserves mean/variance) 
     \end{block}
     
     \begin{columns}
     \begin{column}{.33\textwidth}
     \begin{figure}
         \centering
-        \includegraphics[width=.99\textwidth]{images/mnist-behavior/MNIST-Sample.png}
+        \includegraphics[width=.99\textwidth]{images/mnist-behavior/Sample-MNIST.png}
     \end{figure}
     \end{column}
     \begin{column}{.33\textwidth}
     \begin{figure}
         \centering
-        \includegraphics[width=.99\textwidth]{images/mnist-behavior/MNIST-Sample-random-noise.png}
+        \includegraphics[width=.99\textwidth]{images/mnist-behavior/Sample-random-noise.png}
     \end{figure}
     \end{column}
     \begin{column}{.33\textwidth}
     \begin{figure}
         \centering
-        \includegraphics[width=.99\textwidth]{images/mnist-behavior/MNIST-Sample-random-shuffled-noise.png}
+        \includegraphics[width=.99\textwidth]{images/mnist-behavior/Sample-random-shuffled-noise.png}
     \end{figure}
     \end{column}
     \end{columns}
@@ -696,7 +696,7 @@ My works aims to:
 \begin{frame}{Converted FGN Network - MNIST Behavior}
     
     \begin{block}{Converted FGN Network Parameters}
-    $\bullet$ Same architecture as the classic network $\bullet$ $\sigma = 10$\\
+    $\bullet$ Same architecture as the classic network $\bullet$ $\sigma = 100$\\
     $\bullet$ Same behavior as the classic network over training and validation data.
     \end{block}
 
@@ -756,14 +756,14 @@ My works aims to:
     \begin{column}{.33\textwidth}
     \begin{figure}
         \includegraphics[width=.91\textwidth]{images/mnist-behavior/converted-hist-random.png}
-        \centering \tiny{37\% of confidences $>$0.5}
+        \centering \tiny{0.0\% of confidences $>$0.5}
     \end{figure}
     \end{column}
     \begin{column}{.33\textwidth}
     \begin{figure}
         \centering
         \includegraphics[width=.91\textwidth]{images/mnist-behavior/converted-hist-shuffled.png}
-        \centering \tiny{45\% of confidences $>$0.5}
+        \centering \tiny{43\% of confidences $>$0.5}
     \end{figure}
     \end{column}
     \end{columns}
@@ -774,7 +774,7 @@ My works aims to:
 \begin{frame}{Retrained FGN Network - MNIST Behavior}
     
     \begin{block}{Retrained FGN Network Parameters}
-    $\bullet$ Train converted network for \textbf{one} epoch $\bullet$ sigmas loss param $\lambda = 10^{-10}$
+    $\bullet$ Train converted network for \textbf{one} epoch $\bullet$ sigmas loss param $\lambda = 10^{-5}$
     \end{block}
 
     \begin{columns}
@@ -839,32 +839,32 @@ My works aims to:
     \begin{figure}
         \centering
         \includegraphics[width=.9\textwidth]{images/mnist-behavior/retrained-hist-shuffled.png}
-        \centering \tiny{0.05\% of confidences $>$0.5}
+        \centering \tiny{0.0\% of confidences $>$0.5}
     \end{figure}
     \end{column}
     \end{columns}
     
 \end{frame}
 
-\begin{frame}{Classic vs FGN - EMNIST Letters \cite{cohen2017emnist}}
+\begin{frame}{Classic vs FGN - EMNIST Letters \phantom{\cite{cohen2017emnist}}}
  \vspace{-3mm}
     \begin{columns}
     \begin{column}{.33\textwidth}
     \begin{figure}
-        \includegraphics[width=.85\textwidth]{images/Letters/hist-classic-letters.png}\\
-        \centering \tiny{$>$73\% of confidences $>$0.5}
+        \includegraphics[width=.85\textwidth]{images/mnist-behavior/classic-hist-emnist.png}\\
+        \centering \tiny{$>$90\% of confidences $>$0.5}
     \end{figure}
     \end{column}
     \begin{column}{.33\textwidth}
     \begin{figure}
-        \includegraphics[width=.85\textwidth]{images/Letters/hist-converted-letters.png}\\
-        \centering \tiny{42\% of confidences $>$0.5}
+        \includegraphics[width=.85\textwidth]{images/mnist-behavior/converted-hist-emnist.png}\\
+        \centering \tiny{90\% of confidences $>$0.5}
     \end{figure}
     \end{column}
     \begin{column}{.33\textwidth}
     \begin{figure}
-        \includegraphics[width=.85\textwidth]{images/Letters/hist-retrained-letters.png}\\
-        \centering \tiny{0.0\% of confidences $>$0.5}
+        \includegraphics[width=.85\textwidth]{images/mnist-behavior/retrained-hist-emnist.png}\\
+        \centering \tiny{83\% of confidences $>$0.5}
     \end{figure}
     \end{column}
     \end{columns}
@@ -873,18 +873,18 @@ My works aims to:
     \begin{columns}
     \begin{column}{.33\textwidth}
     \begin{figure}
-        \includegraphics[width=.85\textwidth]{images/Letters/classic-letters.png}
+        \includegraphics[width=.85\textwidth]{images/mnist-behavior/classic-pred-emnist.png}
     \end{figure}
     \end{column}
     \begin{column}{.33\textwidth}
     \begin{figure}
-        \includegraphics[width=.85\textwidth]{images/Letters/converted-letters.png}
+        \includegraphics[width=.85\textwidth]{images/mnist-behavior/converted-pred-emnist.png}
     \end{figure}
     \end{column}
     \begin{column}{.33\textwidth}
     \begin{figure}
         \centering
-        \includegraphics[width=.85\textwidth]{images/Letters/retrained-letters.png}
+        \includegraphics[width=.85\textwidth]{images/mnist-behavior/retrained-pred-emnist.png}
     \end{figure}
     \end{column}
     \end{columns}
@@ -1067,7 +1067,9 @@ My works aims to:
     \centering
     \includegraphics[width=.08\textheight]{images/misc/GitHub-Mark.png} 
     \includegraphics[width=.4\textheight]{images/misc/gpl3.PNG}
-
+    
+    % \fullcite{grezes2021}
+    
 \end{frame}
 
 

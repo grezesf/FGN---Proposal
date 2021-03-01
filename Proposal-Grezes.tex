@@ -357,11 +357,11 @@ All three networks have over 99\% accuracy over the training data and over 97\% 
 \begin{figure}[!h]
     \centering
     \begin{subfigure}[t]{0.49\textwidth}
-        \includegraphics[width=\textwidth]{images/mnist-behavior/MNIST-Sample-random-noise-fixed.png}
+        \includegraphics[width=\textwidth]{images/mnist-behavior/Sample-random-noise.png}
         \caption*{Fully random pixels}
     \end{subfigure}
     \begin{subfigure}[t]{0.49\textwidth}
-        \includegraphics[width=\textwidth]{images/mnist-behavior/MNIST-Sample-random-shuffled-noise-fixed.png}
+        \includegraphics[width=\textwidth]{images/mnist-behavior/Sample-random-shuffled-noise.png}
         \caption*{Shuffled MNIST image}
     \end{subfigure}
     \caption{Samples from the two randomized images datasets.}
@@ -413,17 +413,17 @@ By design the converted FGN network does not modify the behavior of the classic 
     \centering
     \begin{subfigure}[t]{0.49\textwidth}
         \includegraphics[width=\textwidth]{images/mnist-behavior/converted-hist-random.png}
-        \caption*{Over 47\% of confidences $>0.5$}
+        \caption*{0.0\% of confidences $>0.5$}
     \end{subfigure}
     \begin{subfigure}[t]{0.49\textwidth}
         \includegraphics[width=\textwidth]{images/mnist-behavior/converted-hist-shuffled.png}
-        \caption*{Over 45\% of confidences $>0.5$}
+        \caption*{Over 43\% of confidences $>0.5$}
     \end{subfigure}
     \caption{}
     \label{fig:converted-hist}
 \end{figure}
 
-Finally, the FGN network is retrained over MNIST for a \emph{single} epoch. The pressure to shrink the variances $\sigma$ of the network's FNGs, added to the loss function, was a tiny $\lambda=10e^{-10}$. The overall accuracy remains the same (99\% over training data and 97\% over validation data) and still the network outputs extremely confident predictions over MNSIT images. The figure \ref{fig:retrained-mnist} is functionally identical to \ref{fig:classic-mnist}. But when this network is tested over the randomized image sets, almost all the predictions are at 0.1, as shown in figure \ref{fig:ret-hist}, meaning the retrained FGN network's softmax output is actually all zeros, and making no prediction for these randomized images that are far away in the high dimensional hyper-space from the MNIST images. The retrained FGN network is restricting its activity exclusively to zones of the hyper-space in which the training data is present. These zones are still large enough to generalize from the training data to the validation data.
+Finally, the FGN network is retrained over MNIST for a \emph{single} epoch. The pressure to shrink the variances $\sigma$ of the network's FNGs, added to the loss function, was a tiny $\lambda=10e^{-5}$. The overall accuracy remains the same (99\% over training data and 97\% over validation data) and still the network outputs extremely confident predictions over MNSIT images. The figure \ref{fig:retrained-mnist} is functionally identical to \ref{fig:classic-mnist}. But when this network is tested over the randomized image sets, almost all the predictions are at 0.1, as shown in figure \ref{fig:ret-hist}, meaning the retrained FGN network's softmax output is actually all zeros, and making no prediction for these randomized images that are far away in the high dimensional hyper-space from the MNIST images. The retrained FGN network is restricting its activity exclusively to zones of the hyper-space in which the training data is present. These zones are still large enough to generalize from the training data to the validation data.
 \begin{figure}[!h]
     \centering
     \begin{subfigure}[t]{0.49\textwidth}
@@ -440,28 +440,28 @@ Finally, the FGN network is retrained over MNIST for a \emph{single} epoch. The 
         \caption*{0.0\% of of confidences $>0.5$}
     \end{subfigure}
     \begin{subfigure}[t]{0.49\textwidth}
-        \includegraphics[width=\textwidth]{images/mnist-behavior/retrained-hist-shuffled-fixed.png}
-        \caption*{0.05\% of confidences $>0.5$}
+        \includegraphics[width=\textwidth]{images/mnist-behavior/retrained-hist-shuffled.png}
+        \caption*{0.0\% of confidences $>0.5$}
     \end{subfigure}
     \caption{}
     \label{fig:ret-hist}
 \end{figure}
 \newpage % explicit page break
 
-Finally the three networks are tested on the EMNIST dataset, a collection of handwritten letter images by Cohen et al. 2017 \cite{cohen2017emnist}, a verification of the FGN behavior on out-of-domain samples. The histograms of the prediction confidences are shown in figure \ref{fig:hist-letters} and tell the same story as above: the classic models makes many confident predictions, the converted FGN network makes fewer, and the retrained FGN network makes none. Samples images are shown in figure \ref{fig:pred-letters}.
+Finally the three networks are tested on the EMNIST dataset, a collection of handwritten letter images by Cohen et al. 2017 \cite{cohen2017emnist}, a verification of the FGN behavior on out-of-domain samples. The histograms of the prediction confidences are shown in figure \ref{fig:hist-letters}. Unlike over random images, classic and FGN networks behave similarly, with only some images being rejected as out-of-domain by the retrained FGN network. Samples images are shown in figure \ref{fig:pred-letters}.
 \begin{figure}[!h]
     \centering
     \begin{subfigure}[t]{0.32\textwidth}
-        \includegraphics[width=\textwidth]{images/Letters/hist-classic-letters.png}
-        \caption*{73\%  of confidences $>0.5$}
+        \includegraphics[width=\textwidth]{images/mnist-behavior/classic-hist-emnist.png}
+        \caption*{90\%  of confidences $>0.5$}
     \end{subfigure}
     \begin{subfigure}[t]{0.32\textwidth}
-        \includegraphics[width=\textwidth]{images/Letters/hist-converted-letters.png}
-        \caption*{42\% of confidences $>0.5$}
+        \includegraphics[width=\textwidth]{images/mnist-behavior/converted-hist-emnist.png}
+        \caption*{90\% of confidences $>0.5$}
     \end{subfigure}
     \begin{subfigure}[t]{0.32\textwidth}
-        \includegraphics[width=\textwidth]{images/Letters/hist-retrained-letters.png}
-        \caption*{0.0\% of confidences $>0.5$}
+        \includegraphics[width=\textwidth]{images/mnist-behavior/retrained-hist-emnist.png}
+        \caption*{83\% of confidences $>0.5$}
     \end{subfigure}
     \caption{}
     \label{fig:hist-letters}
@@ -469,11 +469,11 @@ Finally the three networks are tested on the EMNIST dataset, a collection of han
 \begin{figure}[!t]
     \centering
     \makebox[\textwidth][c]{
-        \includegraphics[width=0.40\textwidth]{images/Letters/classic-letters.png}
-        \includegraphics[width=0.40\textwidth]{images/Letters/converted-letters.png}
-        \includegraphics[width=0.40\textwidth]{images/Letters/retrained-letters.png}
+        \includegraphics[width=0.40\textwidth]{images/mnist-behavior/classic-pred-emnist.png}
+        \includegraphics[width=0.40\textwidth]{images/mnist-behavior/converted-pred-emnist.png}
+        \includegraphics[width=0.40\textwidth]{images/mnist-behavior/retrained-pred-emnist.png}
     }
-    \caption{Sample EMNIST images with their prediction confidences given by the different networks. Note that some of the confident predictions by the classic network are on images of letters that resemble digits, yet it misses other. Humans would classify all the letter Os as the digit zero. By contrast the retrained FGN networks makes no confident predictions for any of the letters, regardless of how close they resemble digits to humans.}
+    \caption{Sample EMNIST images with their prediction confidences given by the different networks. Images of the letter O are correctly identified as a digit 0 with high confidence by all networks, but other images are also assigned a high confidence prediction. Only the retrained FGN network rejects some images as out-of-domain.}
     \label{fig:pred-letters}
 \end{figure}
 \newpage %explicit page break
